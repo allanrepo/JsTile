@@ -1,0 +1,86 @@
+<!DOCTYPE HTML>
+<!--
+
+this demo is to test the following class:
+- scene
+- sprite
+- sprites
+- tile
+
+
+-->
+<html lang="en-US">
+<head>
+    <meta charset="UTF-8">
+    <title>Frame Rate Demo on Scene Object</title>
+    <script type="text/javascript" src = "./scene.js"></script>
+    <script type="text/javascript" src = "./sprite.js"></script>
+    <script type="text/javascript" src = "./sprites.js"></script>
+	<script type="text/javascript">
+		var app;
+		var sprite01;
+		var sprites01;
+		var currFrame01 = 0, currFrame02 = 0;
+		
+		// called on <body> to initiate js application
+		function init()
+		{		
+			// create scene object
+			app = new scene("sim_canvas");	
+			app.setSize(1024, 768);
+			app.setBackgroundColor("#000000");
+			app.setPos(5, 5);			
+			
+			// add the application loop event running at max interval
+			app.addEvent(run, 1);
+			app.addEvent(anim01, 1500);
+			app.addEvent(anim02, 200);
+
+			// run the app
+			app.start();		
+			
+			sprite01 = new sprite("../png/frame-sprite-animation.png");
+			
+			sprites01 = new sprites("../png/frame-sprite-animation.png", 80, 80);			
+			
+		}
+
+		// application loop 
+ 		function run(info)    
+		{
+			app.clear();
+			app.drawText("This Demo tests sprite and sprites object. ", 5, 5, "16px courier", "rgb(255,255,255)");
+			app.drawText("Application loop state -- step: " + info.step + " now: " + info.now + " fps: " + info.fps.toFixed(2), 5, 25, "16px courier", "rgb(255,255,255)");
+			
+			app.drawText("Below draws a full PNG image file using sprite object. ", 5, 65, "16px courier", "rgb(255,255,255)");
+			sprite01.draw(app, 5, 85);
+
+			app.drawText("Below draws a portion of the PNG image file from a sprite object. ", 5, 185, "16px courier", "rgb(255,255,255)");
+			sprite01.drawRegionToTarget(app, 320, 0, 80, 80, 5, 205, 80, 80);
+			sprite01.drawRegionToTarget(app, 80, 0, 80, 80, 90, 205, 80, 80);
+			
+			app.drawText("Below a sprites object where frame index is based on event loop set on scene. ", 5, 305, "16px courier", "rgb(255,255,255)");
+			sprites01.drawFrame(app, 5, 325, currFrame01);
+			sprites01.drawFrame(app, 90, 325, currFrame02);
+		}		
+		
+		function anim01(info)
+		{
+			currFrame01 += info.step;
+			currFrame01 %= 5;	
+		}
+
+		function anim02(info)
+		{
+			currFrame02 += info.step;
+			currFrame02 %= 5;	
+		}
+			
+	</script>
+</head>
+<body onload = "init()" style="margin: 0">
+    <canvas style="margin-left: left; margin-right: right; display: block; margin: 0;" id = "sim_canvas"  >
+        Your browser does not support the HTML5 canvas tag.
+    </canvas>
+ </body>
+</html>

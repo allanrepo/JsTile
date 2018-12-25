@@ -3,10 +3,13 @@ action item:
 -	bring out as much of canvas drawing function 
 -	
 
-completed
+completed 
+- added comment notes on addEvent() to describe n and t parameters
+
+completed [20181225]
 -	remove useCanvas() function to force others not to use it anymore
 -	when executing event, an object containing its information (e.g. fps, step) is now passed to it
-
+- 
 completed[20181201]
 -	event functions' frame rate are now being measured and passed as argument to the function
 -	n counter on event manager now looks for both n = 0 and n = undefined. previously it's just undefined
@@ -271,6 +274,8 @@ function scene(thisCanvas)
 	this.getNumEvents = function(){ return m_events.length; }
 	
 	// add an event handler to list of events to process in application loop
+	// n - if set, this event will only be executed n steps
+	// t - event's time interval in milliseconds
 	this.addEvent = function(func, t, n)
 	{
 		var e = { func: func, t: t, n: n, add: true }
