@@ -1,0 +1,89 @@
+<!DOCTYPE HTML>
+<!--
+
+this demo is to test the following class:
+- scene
+- sprite
+- sprites
+- tile
+
+
+-->
+<html lang="en-US">
+<head>
+    <meta charset="UTF-8">
+    <title>Frame Rate Demo on Scene Object</title>
+    <script type="text/javascript" src = "./scene.js"></script>
+	<script type="text/javascript">
+		var scene;
+		var red_int = 16;
+		var green_int = 27;
+		var blue_int = 36;
+		var loop_int = 1;
+		
+		function init()
+		{		
+			// create scene object
+			scene = new scene("sim_canvas");	
+			scene.setSize(1024, 768);
+			scene.setBackgroundColor("#000000");
+			scene.setPos(5, 5);			
+			
+			// add the application loop event running at max interval
+			scene.addEvent(run, loop_int);
+			
+			// add functions that sets the RGB color 
+			scene.addEvent(redInt, red_int);
+			scene.addEvent(blueInt, blue_int);
+			scene.addEvent(greenInt, green_int);
+
+			// run the app
+			scene.start();		
+		}
+		
+		var red = {}, blue = {}, green = {};
+		var r = 0, g = 0, b = 0;
+ 		function run(info)    
+		{
+			scene.clear();
+			scene.drawText("This Demo runs 4 events using scene object's event manager feature. ", 5, 5, "16px courier", "rgb(255,255,255)");
+			scene.drawText("1st event is the application loop running at " + loop_int + "ms interval. ", 5, 25, "16px courier", "rgb(255,255,255)");
+			scene.drawText("Expect the actual interval to be slower due to system's limitation. ", 5, 45, "16px courier", "rgb(255,255,255)");
+			scene.drawText("Application loop state -- step: " + info.step + " now: " + info.now + " fps: " + info.fps.toFixed(2), 5, 65, "16px courier", "rgb(255,255,255)");
+		
+			scene.drawText("The next 3 events represent the R, G, and B colors displayed as squares below.", 5, 105, "16px courier", "rgb(255,255,255)");
+			scene.drawText("Their intervals are set at " + red_int + "ms, " + green_int + "ms, and " + blue_int + "ms respectively.", 5, 125, "16px courier", "rgb(255,255,255)");
+			scene.drawText("A 4th rectangle is also displayed that represents the combined colors of all 3.", 5, 145, "16px courier", "rgb(255,255,255)");
+			//scene.drawText("Steps Count:  " + r + ", " + g + ", " + b, 5, 165, "16px courier", "rgb(255,255,255)");
+			scene.drawText("Color values: " + Math.abs(255 * Math.sin(r*Math.PI/180)).toFixed(2) + ", " + Math.abs(255 * Math.sin(g*Math.PI/180)).toFixed(2) + ", " + Math.abs(255 * Math.sin(b*Math.PI/180)).toFixed(2), 5, 165, "16px courier", "rgb(255,255,255)");
+			
+			scene.drawRect( 5      , 200, 128, 64, "rgba( 0, 0, 0, 1.0)", "rgba(" + Math.abs(255 * Math.sin(r*Math.PI/180))+  "0, 0, 1.0 )" );
+			scene.drawRect( 5 + 128, 200, 128, 64, "rgba( 0, 0, 0, 1.0)", "rgba(0," + Math.abs(255 * Math.sin(g*Math.PI/180))+ ", 0, 1.0 )" );
+			scene.drawRect( 5 + 255, 200, 128, 64, "rgba( 0, 0, 0, 1.0)", "rgba(0, 0," + Math.abs(255 * Math.sin(b*Math.PI/180))+ ", 1.0 )" );
+			scene.drawRect( 4      , 265, 384, 64, "rgba( 0, 0, 0, 1.0)", "rgba(" + Math.abs(255 * Math.sin(r*Math.PI/180)) + ", " + Math.abs(255 * Math.sin(g*Math.PI/180)) + ", " + Math.abs(255 * Math.sin(b*Math.PI/180))+ ", 1.0 )" );
+		}		
+		
+		function redInt(info)
+		{
+			r += info.step;
+		}
+		
+		function blueInt(info)
+		{
+			b += info.step;
+		}
+		
+		function greenInt(info)
+		{
+			g += info.step;
+		}
+		
+		
+	</script>
+</head>
+<body onload = "init()" style="margin: 0">
+    <canvas style="margin-left: left; margin-right: right; display: block; margin: 0;" id = "sim_canvas"  >
+        Your browser does not support the HTML5 canvas tag.
+    </canvas>
+ </body>
+</html>
