@@ -1,0 +1,197 @@
+<!DOCTYPE HTML>
+<!--
+
+this demo is to test the following class:
+- scene
+- sprite
+- sprites
+- tile
+
+
+-->
+<html lang="en-US">
+<head>
+    <meta charset="UTF-8">
+    <title>UI Demo</title>
+    <script type="text/javascript" src = "./scene.js"></script>
+    <script type="text/javascript" src = "./ui.js"></script>
+	<script type="text/javascript">
+		var app;
+		var ui;
+		var logs = [];
+		var nMaxDisplay = 64;
+		
+		/* ---------------------------------------------------------------------------------------------
+		called on <body> to initiate js application
+		--------------------------------------------------------------------------------------------- */
+		function init()
+		{		
+			// create scene object
+			app = new scene("sim_canvas");	
+			app.setSize(1024, 768);
+			app.setBackgroundColor("#000000");
+			app.setPos(5, 5);			
+			app.autoFitDocument(true);
+			
+			// add the application loop event running at max interval
+			app.addEvent(run, 1);
+
+			// run the app
+			app.start();	
+
+			// create root ui
+			ui = new root(app, "root", true);	
+			ui.addEventListener("draw", drawUI);			
+			ui.addEventListener("mousemove", onmousemove);
+			ui.addEventListener("mouseleave", onmouseleave);
+			ui.addEventListener("mouseover", onmouseover);
+			ui.addEventListener("mouseup", onmouseup);
+			ui.addEventListener("mousedown", onmousedown);
+			ui.addEventListener("resize", onresize);
+			ui.addEventListener("mousedrag", onmousedrag);
+			
+			// create frame ui 
+			var frame01 = new frame(ui, "frame01", 50, 50, 800, 600, true, true, false, false);
+			frame01.addEventListener("draw", drawroundcornerFrame);						
+			frame01.addEventListener("mousemove", onmousemove);
+			frame01.addEventListener("mouseleave", onmouseleave);
+			frame01.addEventListener("mouseover", onmouseover);						
+			frame01.addEventListener("resize", onresize);
+			frame01.addEventListener("mouseup", onmouseup);
+			frame01.addEventListener("mousedown", onmousedown);
+			frame01.addEventListener("mousedrag", onmousedrag);
+			
+			var frame02 = new frame(frame01, "frame02", 100, 150, 300, 200, true, true, false, false);
+			frame02.addEventListener("draw", drawroundcornerFrame);			
+			frame02.addEventListener("mousemove", onmousemove);
+			frame02.addEventListener("mouseleave", onmouseleave);
+			frame02.addEventListener("mouseover", onmouseover);						
+			frame02.addEventListener("resize", onresize);
+			frame02.addEventListener("mouseup", onmouseup);
+			frame02.addEventListener("mousedown", onmousedown);
+			frame02.addEventListener("mousedrag", onmousedrag);
+			
+			var frame03 = new frame(ui, "frame03", 350, 225, 640, 480, true, true, false, false);
+			frame03.addEventListener("draw", drawroundcornerFrame);						
+			frame03.addEventListener("mousemove", onmousemove);
+			frame03.addEventListener("mouseleave", onmouseleave);
+			frame03.addEventListener("mouseover", onmouseover);						
+			frame03.addEventListener("resize", onresize);
+			frame03.addEventListener("mouseup", onmouseup);
+			frame03.addEventListener("mousedown", onmousedown);
+			frame03.addEventListener("mousedrag", onmousedrag);
+			
+			// create sliders to control RGB background of UI
+			// ----------------------------------------------------------------			
+			var slider01 = new slider(frame01, "slider01", false, 10, 50, 480, 80, 160, 0, 255, false, false);
+			slider01.addEventListener("draw", drawsliderbody);			
+			slider01.addEventListener("drawthumb", drawsliderthumb);	
+			slider01.addEventListener("mousemove", onmousemove);
+			slider01.addEventListener("resize", onresize);
+			slider01.addEventListener("mouseup", onmouseup);
+			slider01.addEventListener("mousedown", onmousedown);
+			slider01.addEventListener("mouseleave", onmouseleave);
+			slider01.addEventListener("mouseover", onmouseover);						
+			slider01.addEventListener("mousedrag", onmousedrag);
+			
+			var slider02 = new slider(frame01, "slider02", true, 10, 150, 80, 320, 120, 0, 255, false, false);
+			slider02.addEventListener("draw", drawsliderbody);			
+			slider02.addEventListener("drawthumb", drawsliderthumb);	
+			slider02.addEventListener("resize", onresize);
+			slider02.addEventListener("mousemove", onmousemove);
+			slider02.addEventListener("mouseup", onmouseup);
+			slider02.addEventListener("mousedown", onmousedown);
+			slider02.addEventListener("mouseleave", onmouseleave);
+			slider02.addEventListener("mouseover", onmouseover);						
+			slider02.addEventListener("mousedrag", onmousedrag);
+		}
+		
+		/* ---------------------------------------------------------------------------------------------
+		ui event handlers: used for testing if event handlers fire up. 
+		--------------------------------------------------------------------------------------------- */
+		function onresize(info){ console.log("[" + info.name + "] resize: " + info.w + ", " + info.h); }
+		function onmouseup(info){ console.log("[" + info.name + "] onmouseup: " + info.x + ", " + info.y); }
+		function onmousedown(info){ console.log("[" + info.name + "] onmousedown: " + info.x + ", " + info.y); }		
+		function onmousedrag(info){ console.log("[" + info.name + "] onmousedrag " + info.x + ", " + info.y + ", " + info.dx + ", " + info.dy); }		
+		function onmousemove(info){ console.log("[" + info.name + "] onmousemove " + info.x + ", " + info.y + ", " + info.dx + ", " + info.dy); }
+		function onmouseover(info){ console.log("[" + info.name + "] onmouseover"); }		
+		function onmouseleave(info){ console.log("[" + info.name + "] onmouseleave"); }		
+
+		/* ---------------------------------------------------------------------------------------------
+		application loop 
+		--------------------------------------------------------------------------------------------- */
+ 		function run(info)    
+		{
+			app.clear();
+			ui.draw();
+			app.drawText("UI Demo. ", 5, 5, "16px courier", "rgb(255,255,255)");
+			app.drawText("Application loop state -- step: " + info.step + " now: " + info.now + " fps: " + info.fps.toFixed(2), 5, 25, "16px courier", "rgb(255,255,255)");
+		}		
+		
+		/* ---------------------------------------------------------------------------------------------
+		draw ui root background
+		--------------------------------------------------------------------------------------------- */
+		function drawUI(info)
+		{
+			app.drawRect(0, 0, info.w, info.h, "", "rgba(96,96,96,1)");
+		}	
+
+		/* ---------------------------------------------------------------------------------------------
+		draw demo info/stats
+		--------------------------------------------------------------------------------------------- */
+		function drawStats(info)
+		{
+			app.save();
+			app.shadowColor("black");
+			app.shadowBlur(10);
+			app.drawRect(info.x, info.y, info.w, info.h, "", "rgba(128, 128,128, 0.5)");
+			app.restore();
+			
+			app.drawText(info.name, info.x + 5, info.y + 5, "24px impact", "rgb(255,255,255)");
+			app.drawText("Log Size: " + logs.length, info.x + 5, info.y + 30, "16px courier", "rgb(255,255,255)");
+
+		}			
+		
+		/* ---------------------------------------------------------------------------------------------
+		draw rounded corner frame 
+		--------------------------------------------------------------------------------------------- */
+		function drawroundcornerFrame(info)
+		{
+			app.save();
+			app.shadowColor("black");
+			app.shadowBlur(10);
+			app.drawRoundedRectangle(info.x, info.y, info.w, info.h, 0, "", "rgba(128, 128,128, 0.5)");
+			app.restore();
+			
+			app.drawText(info.name, info.x + 5, info.y + 5, "16px courier", "rgb(255,255,255)");
+		}		
+		
+		/* ---------------------------------------------------------------------------------------------
+		draw slider body
+		--------------------------------------------------------------------------------------------- */
+		function drawsliderbody(info)
+		{
+			var b = 2;
+			app.drawRoundedRectangle(info.x + b, info.y + b, info.w - b*2, info.h - b*2, 0, "", "rgba(64, 64, 64, 0.25)");
+		}	
+		
+		/* ---------------------------------------------------------------------------------------------
+		draw slider thumb
+		--------------------------------------------------------------------------------------------- */
+		function drawsliderthumb(info)
+		{
+			var b = 4;
+			app.drawRoundedRectangle(info.x + b, info.y + b, info.w - b*2, info.h - b*2, 0, "", "rgba(64, 64, 64, .75)");
+			
+			//app.drawText(info.elem.get(), info.x + 2, info.y + 2, "16px courier", "rgb(255,255,255)");
+		}		
+				
+		
+	</script>
+</head>
+<body onload = "init()" style="margin: 0">
+    <canvas style="margin-left: left; margin-right: right; display: block; margin: 0;" id = "sim_canvas"  >
+        Your browser does not support the HTML5 canvas tag.
+    </canvas>
+ </body>
+</html>

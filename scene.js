@@ -1,10 +1,12 @@
 /*------------------------------------------------------------------------------------------------------------
 action item:
 -	bring out as much of canvas drawing function 
--	
 
 completed 
-- added comment notes on addEvent() to describe n and t parameters
+- 	added comment notes on addEvent() to describe n and t parameters
+- 	added function to enable/disable auto resizing of canvas to fit document area
+- 	fixed some of the canvas function wrappers to call the functions with context()
+-	added wrapper for canvas' save() and restore() functions to allow saving its drawing state
 
 completed [20181225]
 -	remove useCanvas() function to force others not to use it anymore
@@ -104,8 +106,7 @@ function scene(thisCanvas)
 		
 		// fire up a "move" event 
 		var move = new CustomEvent("move",{ detail:{x: x, y: y}});
-		m_canvas.dispatchEvent(move);
-		
+		m_canvas.dispatchEvent(move);		
 	}	
 
 	// privileged method: set background color of the canvas.
@@ -123,13 +124,39 @@ function scene(thisCanvas)
 	this.height = function(){ return m_canvas.height; }
 
 	// set or access canvas properties
-	this.fillStyle = function(e){ if (e) m_canvas.fillStyle = e; return m_canvas.fillStyle; }
-	this.strokeStyle = function(e){ if (e) m_canvas.strokeStyle = e; return m_canvas.strokeStyle; }
-	this.shadowColor = function(e){ if (e) m_canvas.shadowColor = e; return m_canvas.shadowColor; }
-	this.shadowBlur = function(e){ if (e) m_canvas.shadowBlur = e; return m_canvas.shadowBlur; }
-	this.shadowOffsetX = function(e){ if (e) m_canvas.shadowOffsetX = e; return m_canvas.shadowOffsetX; }
-	this.shadowOffsetY = function(e){ if (e) m_canvas.shadowOffsetY = e; return m_canvas.shadowOffsetY; }	
-
+	this.shadowBlur = function(e){ if (e) m_canvas.getContext("2d").shadowBlur = e; return m_canvas.getContext("2d").shadowBlur; }
+	this.fillStyle = function(e){ if (e) m_canvas.getContext("2d").fillStyle = e; return m_canvas.getContext("2d").fillStyle; }
+	this.strokeStyle = function(e){ if (e) m_canvas.getContext("2d").strokeStyle = e; return m_canvas.getContext("2d").strokeStyle; }
+	this.shadowColor = function(e){ if (e) m_canvas.getContext("2d").shadowColor = e; return m_canvas.getContext("2d").shadowColor; }
+	this.shadowOffsetX = function(e){ if (e) m_canvas.getContext("2d").shadowOffsetX = e; return m_canvas.getContext("2d").shadowOffsetX; }
+	this.shadowOffsetY = function(e){ if (e) m_canvas.getContext("2d").shadowOffsetY = e; return m_canvas.getContext("2d").shadowOffsetY; }	
+	
+	// wrapped canvas functions to handle its drawing state
+	this.save = function(){ m_canvas.getContext("2d").save(); }	
+	this.restore = function(){ m_canvas.getContext("2d").restore(); }	
+	
+	/*------------------------------------------------------------------------
+	scene can automatically resize canvas to fill document area. this can be
+	enabled/disabled with this function
+	------------------------------------------------------------------------*/	
+	
+	// internal function that resizes the canvas
+	var autoFitDocument = function(e)
+	{
+		this.setSize(window.innerWidth, window.innerHeight);
+		this.setPos(0, 0);				
+	}.bind(this);
+	
+	// enable/disable auto resize canvas 
+	this.autoFitDocument = function(enable)
+	{		
+		if (typeof enable != 'undefined' && enable) 
+		{
+			autoFitDocument();
+			window.addEventListener("resize", autoFitDocument);				
+		}
+		else{ window.removeEventListener("resize", autoFitDocument); }		
+	}
 	
 	/*------------------------------------------------------------------------
 	wrapper for event handler functions for canvas element
