@@ -1,0 +1,210 @@
+<!DOCTYPE HTML>
+<html lang="en-US">
+<head>
+    <meta charset="UTF-8">
+    <title>Tile Demo</title>
+    <script type="text/javascript" src = "./scene.js"></script>
+    <script type="text/javascript" src = "./tile.js"></script>
+    <script type="text/javascript" src = "./ui.js"></script>
+    <script type="text/javascript" src = "./sprite.js"></script>
+	<script type="text/javascript">
+		var scene;
+		var tile, grass;
+		var drawHidden, useTiledCanvas;
+		var alphaAdjust;
+		var ui, ImageDataFrame, TileDrawFrame;
+		
+		/* ---------------------------------------------------------------------------------------------
+		called on <body> to initiate js scenelication
+		--------------------------------------------------------------------------------------------- */
+		function init()
+		{		
+			// create scene object
+			scene = new Scene("sim_canvas");	
+			scene.setSize(1024, 768);
+			scene.setBackgroundColor("#ffffff");
+			scene.setPos(5, 5);			
+			scene.autoFitDocument(true);
+
+			// create ui
+			ui = new root(scene, "root", true);	
+			ui.addEventListener("draw", drawUI);			
+			ui.addEventListener("mousemove", onmousemove);
+
+			// create container frame for the Tile object drawing
+			TileDrawFrame = new frame(ui, "TileDrawFrame", 25, 100, 400, 640, true, true, false);
+			TileDrawFrame.addEventListener("draw", drawFrame);						
+			TileDrawFrame.addEventListener("draw", ondrawTileDrawFrame);						
+
+			// create button to toggle option to draw hidden tiles
+			drawHidden = new frame(TileDrawFrame, "drawHidden", 56, 465, 288, 48, false, false, false);
+			drawHidden.addEventListener("draw", drawbutton);						
+			drawHidden.addEventListener("mousemove", onmousemove);
+			drawHidden.addEventListener("mousedown", onmousedown);
+			drawHidden.addEventListener("mouseup", onmouseup);
+			drawHidden.addEventListener("mouseleave", onmouseleave);
+			drawHidden.value = true;			
+			drawHidden.text = "Drawing Hidden Tiles: ";			
+			drawHidden.state = 0;
+					
+			// create button to toggle option to draw Tile using either tiled canvas or full single canvas
+			useTiledCanvas = new frame(TileDrawFrame, "useTiledCanvas", 56, 525, 288, 48, false, false, false);
+			useTiledCanvas.addEventListener("draw", drawbutton);						
+			useTiledCanvas.addEventListener("mousedown", onmousedown);
+			useTiledCanvas.addEventListener("mousemove", onmousemove);
+			useTiledCanvas.addEventListener("mouseup", onmouseup);
+			useTiledCanvas.addEventListener("mouseleave", onmouseleave);
+			useTiledCanvas.value = true;			
+			useTiledCanvas.text = "Using Tiled Canvas: ";			
+			useTiledCanvas.state = 0;
+
+			// create tile image alpha adjuster
+			alphaAdjust = new slider(TileDrawFrame, "alphaAdjust", false, 56, 585, 288, 32, 32, 10, 100, false);
+			alphaAdjust.addEventListener("draw", drawsliderbody);			
+			alphaAdjust.addEventListener("drawthumb", drawsliderthumb);	
+
+			// create container frame for the tile used for testing getImageData()
+			ImageDataFrame = new frame(ui, "ImageDataFrame", 480, 100, 400, 640, true, true, false);
+			ImageDataFrame.addEventListener("draw", drawFrame);						
+			ImageDataFrame.addEventListener("draw", ondrawImageDataFrame);						
+			ImageDataFrame.addEventListener("mousemove", onMouseMoveImageData);
+			ImageDataFrame.value = 0.7;
+
+			// add the application loop event running at max interval
+			scene.addEvent(run, 1);
+			
+			// create objects
+			//tile = new Tile("../png/tiles/tile_3x2_bldg04.png", 3, 2, 72, 144, 24, true);
+			tile = new Tile("../png/tiles/tile_3x2_bldg04.png", 6, 4, 36, 72, 24, true);
+			grass = new Tile("../png/tiles/tile_2x2_grass.png", 1, 1, 144, 288, 24, true);
+			sprite = new Sprite("../png/tiles/tile_3x2_bldg04.png");
+			
+			// run the scene
+			scene.start();	
+		}
+
+		/* ---------------------------------------------------------------------------------------------
+		draw ui root background
+		--------------------------------------------------------------------------------------------- */
+		function drawUI(info)
+		{ 
+			scene.drawRect(0, 0, info.w, info.h, "", "rgba(128,128,128,1)"); 
+			scene.drawText("Testing Tile Class Features", 5, 5, "16px courier", "rgb(255,255,255)");
+			scene.drawText("application loop state -- step: " + info.elem.renderinfo.step + " now: " + info.now + " fps: " + info.elem.renderinfo.fps.toFixed(2), 5, 25, "16px courier", "rgb(255,255,255)");
+		}			
+
+		/* ---------------------------------------------------------------------------------------------
+		draw frame
+		--------------------------------------------------------------------------------------------- */
+		function drawFrame(info)
+		{
+			scene.save();
+			scene.shadowColor = "black";
+			scene.shadowBlur = 10;
+			scene.drawRoundedRectangle(info.x, info.y, info.w, info.h, 5, "", "rgba(192, 192, 192, 0.5)");
+			scene.restore();			
+		}
+		
+		/* ---------------------------------------------------------------------------------------------
+		draw slider
+		--------------------------------------------------------------------------------------------- */
+		function drawsliderbody(info){ scene.drawRoundedRectangle(info.x, info.y + info.h/2 - 5, info.w, 10, 5, "", "rgba(192, 192, 192, 1)"); }
+		function drawsliderthumb(info){ scene.drawRoundedRectangle(info.x, info.y, info.w, info.h, info.h/2, "", "rgba(192, 192, 192, 1)"); }		
+
+		/* ---------------------------------------------------------------------------------------------
+		draw contents of the "tile draw" frame
+		--------------------------------------------------------------------------------------------- */
+		function ondrawTileDrawFrame(info)
+		{
+			scene.drawText("Drawing 6x4 tile object", info.x + 15, info.y + 15, "16px courier", "rgb(255,255,255)");
+			scene.drawText("Move the Slider to adjust the alpha", info.x + 15, info.y + 35, "16px courier", "rgb(255,255,255)");
+			scene.drawText("and observe the hidden tiles", info.x + 15, info.y + 55, "16px courier", "rgb(255,255,255)");
+			scene.save();
+			scene.globalAlpha = alphaAdjust.get() / 100;
+			tile.drawTiled(scene, info.x + 15, info.y + 250, useTiledCanvas.value, drawHidden.value);
+			scene.restore();			
+		}			
+
+		/* ---------------------------------------------------------------------------------------------
+		draw contents of getImageData() testing frame
+		--------------------------------------------------------------------------------------------- */
+		function ondrawImageDataFrame(info)
+		{
+			scene.drawText("This frame draws a 1x1 tile.", info.x + 15, info.y + 15, "16px courier", "rgb(255,255,255)");
+			scene.drawText("Move mouse cursor over the tile and it", info.x + 15, info.y + 35, "16px courier", "rgb(255,255,255)");
+			scene.drawText("will be highlighted. ", info.x + 15, info.y + 55, "16px courier", "rgb(255,255,255)");
+			scene.drawText("It uses Tile.getImageData() to detect", info.x + 15, info.y + 75, "16px courier", "rgb(255,255,255)");
+			scene.drawText("intersection between mouse cursor and", info.x + 15, info.y + 95, "16px courier", "rgb(255,255,255)");
+			scene.drawText("a non transparent pixel in the tile", info.x + 15, info.y + 115, "16px courier", "rgb(255,255,255)");
+			scene.drawText("image. This feature is used for tile", info.x + 15, info.y + 135, "16px courier", "rgb(255,255,255)");
+			scene.drawText("picking with Tile object.", info.x + 15, info.y + 155, "16px courier", "rgb(255,255,255)");
+			
+			scene.save();
+			scene.globalAlpha = info.elem.value;
+			grass.drawTiled(scene, info.x + 50, info.y + 250);
+			scene.restore();			
+
+			scene.drawText("Tile Image Top-Left Absolute Value:", info.x + 15, info.y + 500, "16px courier", "rgb(255,255,255)");
+			scene.drawText((info.x + 50) + ", " + (info.y + 200), info.x + 15, info.y + 520, "16px courier", "rgb(255,255,255)");
+			scene.drawText("Mouse Cursor Absolute Value:", info.x + 15, info.y + 550, "16px courier", "rgb(255,255,255)");
+			scene.drawText(info.elem.mx + ", " + info.elem.my, info.x + 15, info.y + 570, "16px courier", "rgb(255,255,255)");
+		}		
+
+		function onMouseMoveImageData(info)
+		{ 
+			var T = info.elem.getAbsPos();
+			var ImgData = grass.getImageData(info.x - T.x - 50, info.y - T.y - 250, 1, 1, 0, 0);
+			if (ImgData.data[3] > 0) info.elem.value = 1;
+			else info.elem.value = 0.7;
+
+			info.elem.mx = info.x;
+			info.elem.my = info.y;
+		}
+		
+		/* ---------------------------------------------------------------------------------------------
+		button.state = 1 if mouse hovers it, button.state = 2 if is pressed
+		button.value is toggled everytime it is pressed
+		--------------------------------------------------------------------------------------------- */
+		function onmousemove(info){ info.elem.state = 1; }
+		function onmouseleave(info){ info.elem.state = 0; }		
+		function onmousedown(info){ info.elem.value = !info.elem.value; info.elem.state = 2; }			
+		function onmouseup(info){ info.elem.state = 1; }				
+
+		/* ---------------------------------------------------------------------------------------------
+		draw buttons. if mouse hover it, it's background alpha decreases (less transparency)
+		if mouse clicks on it, it gets pressed
+		--------------------------------------------------------------------------------------------- */
+		function drawbutton(info)
+		{
+			scene.save();
+			scene.shadowColor = "black";
+			scene.shadowBlur = 10;
+			scene.drawRoundedRectangle(	info.x + (info.elem.state == 2? 1: 0), 
+										info.y + (info.elem.state == 2? 1: 0), 
+										info.w, info.h, 5, "", 
+										"rgba(192, 192, 192, " + (info.elem.state >0? 0.8: 0.5)  + ")");
+			scene.restore();
+			scene.drawText(	info.elem.text + (info.elem.value? "True": "False"), 
+							info.x + 16 + (info.elem.state == 2? 1: 0), 
+							info.y + 16 + (info.elem.state == 2? 1: 0), 
+							"16px courier", "rgb(255,255,255)");
+		}	
+
+		/* ---------------------------------------------------------------------------------------------
+		application loop 
+		--------------------------------------------------------------------------------------------- */
+ 		function run(info)    
+		{
+			scene.clear();	
+			ui.renderinfo = info;
+			ui.draw();		
+		}		
+		
+	</script>
+</head>
+<body onload = "init()" style="margin: 0">
+    <canvas style="margin-left: left; margin-right: right; display: block; margin: 0;" id = "sim_canvas"  >
+        Your browser does not support the HTML5 canvas tag.
+    </canvas>
+ </body>
+</html>
