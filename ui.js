@@ -11,6 +11,9 @@ action item:
 	mouse events. is this acceptable?
 
 completed
+-	remove setParent() to all classes
+
+completed[20181231]
 -	removed console loggers for events
 - 	replaced event handler arguments with objects so its easier to add new parameters in future. 
 -	removed setEventHandlers(). addEventListeners() replaced them
@@ -141,20 +144,9 @@ function root(element, name)
 	holds child objects. bottom child is at start of array, and top child is at the end
 	--------------------------------------------------------------------------------------*/
 	var children = [];	
-	this.addChild = function(child){ children.push(child); if(typeof child.setParent === 'function') child.setParent(this); }
-	this.removeChild = function(child)
-	{
-		for (var i = 0; i < children.length; i++)
-		{
-			if ( children[i] == child)
-			{ 
-				children.splice(i, 1); 
-				return;
-			}
-		}
-	}
+	this.addChild = function(child){ children.push(child); }
+	this.removeChild = function(child){	for (var i = 0; i < children.length; i++) { if ( children[i] == child) { children.splice(i, 1); return; }}}
 	this.getNumChildren = function(){ return children.length; }
-	this.setParent = function(p){ parent = p; }
 	
 	/*--------------------------------------------------------------------------------------
 	this object doesn't really get rendered. its main purpose is to occupy the scene it 
@@ -375,9 +367,8 @@ function frame(parent, name, x, y, w, h, sx, sy, hide)
 	holds child objects. bottom child is at start of array, and top child is at the end
 	--------------------------------------------------------------------------------------*/
 	var children = [];	
-	this.setParent = function(p){ parent = p; }
-	this.addChild = function(child){ children.push(child); if(child.setParent) child.setParent(this); }
-	this.removeChild = function(child){ for (var i = 0; i < children.length; i++){ if ( children[i] == child){ children.splice(i, 1); return;} }}
+	this.addChild = function(child){ children.push(child); }
+	this.removeChild = function(child){ for (var i = 0; i < children.length; i++){ if ( children[i] == child){ children.splice(i, 1); return; }}}
 	this.getNumChildren = function(){ return children.length; }
 	
 	/*--------------------------------------------------------------------------------------
@@ -619,13 +610,36 @@ function slider(parent, name, vertical, x, y, w, h, t, min, max, hide)
 		return hide; 
 	}
 	
+	body.addEventListener("draw", function(e)
+	{
+		for (var i = 0; i < drawEvents.length; i++) drawEvents[i]({elem: this, name: name, x: e.x, y: e.y, w: e.w, h: e.h});
+	}.bind(this));
+
+	thumb.addEventListener("draw", function(e)
+	{
+		for (var i = 0; i < drawThumbEvents.length; i++) drawThumbEvents[i]({elem: this, name: name, x: e.x, y: e.y, w: e.w, h: e.h});
+	}.bind(this));
+	
+	this.draw = function()
+	{
+		if (hide) return;
+		var P = this.getAbsPos();
+		for (var i = 0; i < drawEvents.length; i++) drawEvents[i]({elem: this, name: name, x: P.x, y: P.y, w: w, h: h});
+		for (var i = 0; i < children.length; i++){ if (children[i].draw) children[i].draw(); }				
+	}	
+	
 	/*--------------------------------------------------------------------------------------
 	assign event handlers
 	--------------------------------------------------------------------------------------*/
+
+	var drawEvents = [];
+	var drawThumbEvents = [];
+	var changeEvents = [];
 	this.addEventListener = function(e, f)
 	{
-		if (e === "draw"){ body.addEventListener("draw", f); }
-		if (e === "drawthumb"){ thumb.addEventListener("draw", f); }
+		if (e === "change"){ changeEvents.push(f); }		
+		if (e === "draw"){ drawEvents.push(f); }
+		if (e === "drawthumb"){ drawThumbEvents.push(f); }
 		if (e === "resize"){ body.addEventListener(e, f); thumb.addEventListener(e, f); }		
 		if (e === "mouseup"){ body.addEventListener(e, f); thumb.addEventListener(e, f); }		
 		if (e === "mousedown"){ body.addEventListener(e, f); thumb.addEventListener(e, f); }		
@@ -637,8 +651,9 @@ function slider(parent, name, vertical, x, y, w, h, t, min, max, hide)
 	
 	this.removeEventListener = function(e, f)
 	{
-		if (e === "draw"){ body.removeEventListener("draw", f); }			
-		if (e === "drawthumb"){ thumb.removeEventListener("draw", f); }			
+		if (e === "change"){ for (var i = 0; i < changeEvents.length; i++){ if (changeEvents[i] == f){ changeEvents.splice(i,1); return; }}}			
+		if (e === "draw"){ for (var i = 0; i < drawEvents.length; i++){ if (drawEvents[i] == f){ drawEvents.splice(i,1); return; }}}			
+		if (e === "drawthumb"){ for (var i = 0; i < drawThumbEvents.length; i++){ if (drawThumbEvents[i] == f){ drawThumbEvents.splice(i,1); return; }}}			
 		if (e === "resize"){ body.removeEventListener(e, f); thumb.removeEventListener(e, f); }		
 		if (e === "mouseup"){ body.removeEventListener(e, f); thumb.removeEventListener(e, f); }		
 		if (e === "mousedown"){ body.removeEventListener(e, f); thumb.removeEventListener(e, f); }		
@@ -647,12 +662,7 @@ function slider(parent, name, vertical, x, y, w, h, t, min, max, hide)
 		if (e === "mousemove"){ body.removeEventListener(e, f); thumb.removeEventListener(e, f); }		
 		if (e === "mousedrag"){ body.removeEventListener(e, f); thumb.removeEventListener(e, f); }		
 	}		
-	
-	body.addEventListener("draw", function(e)
-	{
-		
-	}.bind(this));
-	
+
 	/* --------------------------------------------------------------------------------------
 	acquire or manually set the current index value of the slider
 	-------------------------------------------------------------------------------------- */
@@ -666,6 +676,8 @@ function slider(parent, name, vertical, x, y, w, h, t, min, max, hide)
 		
 		// update thumb position based on current value
 		updateThumbPos();		
+		
+		for (var i = 0; i < changeEvents.length; i++){ changeEvents[i]({elem: this, val: curr, min: min, max: max}); }		
 	}	
 	
 	/* --------------------------------------------------------------------------------------
@@ -675,11 +687,8 @@ function slider(parent, name, vertical, x, y, w, h, t, min, max, hide)
 	{
 		min = _min;
 		max = _max;
-
-		if (current > max) current = max;
-		if (current < min) current = min;		
 		
-		updateThumbPos();		
+		this.set(curr);
 	}
 	
 	/* --------------------------------------------------------------------------------------

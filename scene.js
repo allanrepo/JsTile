@@ -1,8 +1,15 @@
 /*------------------------------------------------------------------------------------------------------------
 action item:
 -	bring out as much of canvas drawing function 
+-	might want to change canvas property wrappers to use defineProperty()
 
-completed 
+completed
+-	capitalize first character so it is now 'Scene'. reason is we want to standardize classes to be
+	starting with capital letter
+-	wrapped globalAlpha property of canvas and make it a property of scene
+- 	change m_canvas to canvas for simplicity
+
+completed [20181231]
 - 	added comment notes on addEvent() to describe n and t parameters
 - 	added function to enable/disable auto resizing of canvas to fit document area
 - 	fixed some of the canvas function wrappers to call the functions with context()
@@ -42,25 +49,25 @@ events
 // holds object to draw stuff
 // runs a scene loop with controllable frame rate
 /////////////////////////////////////////////////////////////////////////////////////////////////
-function scene(thisCanvas)
+function Scene(thisCanvas)
 {	
 	/*------------------------------------------------------------------------
 	initialize the canvas element
 	------------------------------------------------------------------------*/
-	var m_canvas = {};
+	var canvas = {};
 		
 	// if a reference to canvas is passed, we copy reference to that canvas element
 	if (typeof thisCanvas != 'undefined')
 	{		
 		// access canvas created from web page
-		m_canvas = document.getElementById(thisCanvas);		
+		canvas = document.getElementById(thisCanvas);		
 		
 		// let's check if the referenced canvas exist
-		if (!m_canvas)
+		if (!canvas)
 		{
 			// dynamically create canvas element
 			console.log("canvas with id=" +thisCanvas+ " does not exist. Creating a new canvas...");
-			m_canvas = document.createElement("canvas");
+			canvas = document.createElement("canvas");
 		}
 	}
 	// otherwise, if no canvas reference is passed, we create a new one
@@ -68,14 +75,14 @@ function scene(thisCanvas)
 	{
 		thisCanvas = "canvas";
 		console.log("no canvas reference passed, creating a canvas with id=" +thisCanvas+ "...");
-		m_canvas = document.createElement("canvas");
+		canvas = document.createElement("canvas");
 	}  	
 	
 	// at this point, canvas is either created or already exist so we do final verification
-	if (m_canvas)
+	if (canvas)
 	{
 		console.log("canvas with id=" +thisCanvas+ " successfully created or already exists.");
-		document.body.appendChild(m_canvas);		
+		document.body.appendChild(canvas);		
 	}
 	else{ throw new Error("Failed to canvas with id=" +thisCanvas+ "."); }
 	
@@ -87,12 +94,12 @@ function scene(thisCanvas)
 	// privileged method: set extent of the canvas
 	this.setSize = function(width, height)                             
 	{
-		m_canvas.width = width;
-		m_canvas.height = height;
+		canvas.width = width;
+		canvas.height = height;
 		
 		// fire up a "resize" event 
 		var resize = new CustomEvent("resize",{ detail:{ width: width, height: height }});
-		m_canvas.dispatchEvent(resize);
+		canvas.dispatchEvent(resize);
 	}    
 	
 	// privileged method: set the left and top offset position of the canvas where it will be placed by html 
@@ -100,40 +107,41 @@ function scene(thisCanvas)
 	this.setPos = function(x, y)
 	{
 		//CSS3 transform to move element, doing this for cross-browser compatibility
-		m_canvas.style.MozTransform = "translate(" + x + "px, " + y + "px)";
-		m_canvas.style.WebkitTransform = "translate(" + x + "px, " + y + "px)";
-		m_canvas.style.OTransform = "translate(" + x + "px, " + y + "px)";
+		canvas.style.MozTransform = "translate(" + x + "px, " + y + "px)";
+		canvas.style.WebkitTransform = "translate(" + x + "px, " + y + "px)";
+		canvas.style.OTransform = "translate(" + x + "px, " + y + "px)";
 		
 		// fire up a "move" event 
 		var move = new CustomEvent("move",{ detail:{x: x, y: y}});
-		m_canvas.dispatchEvent(move);		
+		canvas.dispatchEvent(move);		
 	}	
 
 	// privileged method: set background color of the canvas.
 	// color can be set as #[XX][YY][ZZ] where XX is 8-bit red, YY is 8-bit green, ZZ is 8-bit blue; #FFFF00 = yellow
-	this.setBackgroundColor = function(color){ m_canvas.style.backgroundColor = color; }	
+	this.setBackgroundColor = function(color){ canvas.style.backgroundColor = color; }	
 	
 	// clear screen
-	this.clear = function(){ m_canvas.getContext("2d").clearRect(0, 0, m_canvas.width, m_canvas.height); }
+	this.clear = function(){ canvas.getContext("2d").clearRect(0, 0, canvas.width, canvas.height); }
 
 	// get the top-left position of canvas in the document as well as its width/height all in the form of 'rect' object
-	this.getBoundingClientRect = function(){ return m_canvas.getBoundingClientRect(); }
+	this.getBoundingClientRect = function(){ return canvas.getBoundingClientRect(); }
 
 	// access canvas extents
-	this.width = function(){ return m_canvas.width; }
-	this.height = function(){ return m_canvas.height; }
+	this.width = function(){ return canvas.width; }
+	this.height = function(){ return canvas.height; }
 
 	// set or access canvas properties
-	this.shadowBlur = function(e){ if (e) m_canvas.getContext("2d").shadowBlur = e; return m_canvas.getContext("2d").shadowBlur; }
-	this.fillStyle = function(e){ if (e) m_canvas.getContext("2d").fillStyle = e; return m_canvas.getContext("2d").fillStyle; }
-	this.strokeStyle = function(e){ if (e) m_canvas.getContext("2d").strokeStyle = e; return m_canvas.getContext("2d").strokeStyle; }
-	this.shadowColor = function(e){ if (e) m_canvas.getContext("2d").shadowColor = e; return m_canvas.getContext("2d").shadowColor; }
-	this.shadowOffsetX = function(e){ if (e) m_canvas.getContext("2d").shadowOffsetX = e; return m_canvas.getContext("2d").shadowOffsetX; }
-	this.shadowOffsetY = function(e){ if (e) m_canvas.getContext("2d").shadowOffsetY = e; return m_canvas.getContext("2d").shadowOffsetY; }	
-	
+	Object.defineProperty(this, "shadowBlur", { get: function(){ return canvas.getContext("2d").shadowBlur; }, set: function(e){ canvas.getContext("2d").shadowBlur = e; }});
+	Object.defineProperty(this, "fillStyle", { get: function(){ return canvas.getContext("2d").fillStyle; }, set: function(e){ canvas.getContext("2d").fillStyle = e; }});
+	Object.defineProperty(this, "strokeStyle", { get: function(){ return canvas.getContext("2d").strokeStyle; }, set: function(e){ canvas.getContext("2d").strokeStyle = e; }});
+	Object.defineProperty(this, "shadowColor", { get: function(){ return canvas.getContext("2d").shadowColor; }, set: function(e){ canvas.getContext("2d").shadowColor = e; }});
+	Object.defineProperty(this, "shadowOffsetX", { get: function(){ return canvas.getContext("2d").shadowOffsetX; }, set: function(e){ canvas.getContext("2d").shadowOffsetX = e; }});
+	Object.defineProperty(this, "shadowOffsetY", { get: function(){ return canvas.getContext("2d").shadowOffsetY; }, set: function(e){ canvas.getContext("2d").shadowOffsetY = e; }});
+	Object.defineProperty(this, "globalAlpha", { get: function(){ return canvas.getContext("2d").globalAlpha; }, set: function(e){ canvas.getContext("2d").globalAlpha = e; }});
+
 	// wrapped canvas functions to handle its drawing state
-	this.save = function(){ m_canvas.getContext("2d").save(); }	
-	this.restore = function(){ m_canvas.getContext("2d").restore(); }	
+	this.save = function(){ canvas.getContext("2d").save(); }	
+	this.restore = function(){ canvas.getContext("2d").restore(); }	
 	
 	/*------------------------------------------------------------------------
 	scene can automatically resize canvas to fill document area. this can be
@@ -162,22 +170,22 @@ function scene(thisCanvas)
 	wrapper for event handler functions for canvas element
 	------------------------------------------------------------------------*/	
 	
-	this.addEventListener = function(evt, func){ m_canvas.addEventListener(evt, func); }
-	this.removeEventListener = function(evt, func){ m_canvas.removeEventListener(evt, func); }
+	this.addEventListener = function(evt, func){ canvas.addEventListener(evt, func); }
+	this.removeEventListener = function(evt, func){ canvas.removeEventListener(evt, func); }
 		
 	/*------------------------------------------------------------------------
 	functions to draw stuff 
 	------------------------------------------------------------------------*/
 	
 	// wrapper for draw functions of canvas element
-	this.drawImage = function(image, x, y){ m_canvas.getContext("2d").drawImage(image, x, y); }	
-	this.drawImageRegionToTarget = function(image, sx, sy, sw, sh, x, y, w, h){ m_canvas.getContext("2d").drawImage(image, sx, sy, sw, sh, x, y, w, h); }	
-	this.drawImageToTarget = function(image, x, y, w, h){ m_canvas.getContext("2d").drawImage(image, x, y, w, h); }
+	this.drawImage = function(image, x, y){ canvas.getContext("2d").drawImage(image, x, y); }	
+	this.drawImageRegionToTarget = function(image, sx, sy, sw, sh, x, y, w, h){ canvas.getContext("2d").drawImage(image, sx, sy, sw, sh, x, y, w, h); }	
+	this.drawImageToTarget = function(image, x, y, w, h){ canvas.getContext("2d").drawImage(image, x, y, w, h); }
 	
 	// draw line
 	this.drawLine = function(x0, y0, x1, y1, color)
 	{
-		var ctx = m_canvas.getContext("2d");
+		var ctx = canvas.getContext("2d");
 		ctx.strokeStyle = color;
 		ctx.beginPath();
 		ctx.moveTo(x0, y0)
@@ -188,7 +196,7 @@ function scene(thisCanvas)
 	// draw circle
 	this.drawCircle = function(x, y, radius, color, fill)
 	{
-		var ctx = m_canvas.getContext("2d");
+		var ctx = canvas.getContext("2d");
 		ctx.beginPath();
 		ctx.arc(x, y, radius, 0, 2*Math.PI);
 		
@@ -208,7 +216,7 @@ function scene(thisCanvas)
 	// draw rectangle
 	this.drawRect = function(x, y, w, h, color, fill)
 	{
-		var ctx = m_canvas.getContext("2d");
+		var ctx = canvas.getContext("2d");
 		if (fill) 
 		{
 			ctx.fillStyle = fill;
@@ -226,7 +234,7 @@ function scene(thisCanvas)
 	// draw rounded corner frame 
 	this.drawRoundedRectangle = function(x, y, w, h, r, color, fill)
 	{
-		var ctx = m_canvas.getContext("2d");
+		var ctx = canvas.getContext("2d");
 		
 		if (r == 'undefined' || !r)
 		{
@@ -263,9 +271,8 @@ function scene(thisCanvas)
 	
 	/*------------------------------------------------------------------------
 	functions that performs transformation of canvas element
-	------------------------------------------------------------------------*/	
-	
-	this.translate = function(tx, ty){ m_canvas.getContext("2d").translate(tx, ty); }
+	------------------------------------------------------------------------*/		
+	this.translate = function(tx, ty){ canvas.getContext("2d").translate(tx, ty); }
 		
 	/*------------------------------------------------------------------------
 	 functions to draw text primarily for debugging purposes
@@ -274,8 +281,8 @@ function scene(thisCanvas)
 	// privileged method: write text to canvas at given position
 	this.drawText = function(text, x, y, font, color, alpha, halign, valign) 
 	{
-		var ctx = m_canvas.getContext("2d");
-		if (!ctx){ throw new Error("Failed to get 2D context from " +m_canvas+ "."); }
+		var ctx = canvas.getContext("2d");
+		if (!ctx){ throw new Error("Failed to get 2D context from " +canvas+ "."); }
 		
 		if (typeof font !== 'undefined' && font){ ctx.font = font; }
 		if (typeof color !== 'undefined' && color){ ctx.fillStyle = color; }
@@ -293,12 +300,12 @@ function scene(thisCanvas)
 	functions to manage event loop
 	queueing event follows FIFO rule; if 2 same function is queued, the next call to stop it will stop the first one in the list
 	------------------------------------------------------------------------------------------------------------------------------------------*/
-	var m_events = [];
-	var m_intID;
-	var m_eventQueue = [];
+	var events = [];
+	var intID;
+	var eventQueue = [];
 	
 	// accessors
-	this.getNumEvents = function(){ return m_events.length; }
+	this.getNumEvents = function(){ return events.length; }
 	
 	// add an event handler to list of events to process in application loop
 	// n - if set, this event will only be executed n steps
@@ -306,23 +313,23 @@ function scene(thisCanvas)
 	this.addEvent = function(func, t, n)
 	{
 		var e = { func: func, t: t, n: n, add: true }
-		m_eventQueue.push(e);
+		eventQueue.push(e);
 	}
 	
 	// queue up an event handler to be removed from the list. once safe to delete, it will be deleted
 	this.removeEvent = function(func)
 	{	
 		// look for the first occurence of this event in the list starting at first-in
-		for (var i = 0; i < m_events.length; i++)
+		for (var i = 0; i < events.length; i++)
 		{ 			
-			if(func == m_events[i]) 
+			if(func == events[i]) 
 			{
 				// add this event to list of to be removed 
 				var e = { func: func, add: false }
-				m_eventQueue.push(e);				
+				eventQueue.push(e);				
 				
 				// let's pause this event so it won't get updated anymore from here onwards...
-				m_events[i].paused = true; 
+				events[i].paused = true; 
 				break;
 			}
 		}
@@ -334,93 +341,93 @@ function scene(thisCanvas)
 	this.start = function()
 	{
 		prev = new Date().getTime();
-		m_intID = setInterval(function()
+		intID = setInterval(function()
 		{
 			// snapshot time now
 			var now = new Date().getTime();						
 			
 			// loop through all events 		
-			for (var i = 0; i < m_events.length; i++)
+			for (var i = 0; i < events.length; i++)
 			{ 
-				m_events[i].now = now;
+				events[i].now = now;
 				
 				// if it's the first time for this event
-				if (m_events[i].first)
+				if (events[i].first)
 				{
-					m_events[i].first = false;
-					m_events[i].prev = now;
+					events[i].first = false;
+					events[i].prev = now;
 					continue;
 				}
 				
 				// if this event is already stopped, let's not update it anymore.
-				if(m_events[i].paused) continue;
+				if(events[i].paused) continue;
 		
 				// if time elapsed more than this event's interval, let's fire it up
-				if (now - m_events[i].prev > m_events[i].t)
+				if (now - events[i].prev > events[i].t)
 				{
 					// calculate how many steps the event has occured based on delta time between prev and now
-					var step = Math.floor((now - m_events[i].prev)/m_events[i].t);					
+					var step = Math.floor((now - events[i].prev)/events[i].t);					
 					
 					// calculate frame rate of this event. it updates every second
-					m_events[i].frame++;
-					if(now - m_events[i].start1sec >= 1000)
+					events[i].frame++;
+					if(now - events[i].start1sec >= 1000)
 					{
-						m_events[i].fps = m_events[i].frame / (now - m_events[i].start1sec) * 1000;
-						m_events[i].start1sec = now;
-						m_events[i].frame = 0;
+						events[i].fps = events[i].frame / (now - events[i].start1sec) * 1000;
+						events[i].start1sec = now;
+						events[i].frame = 0;
 					}
 										
 					// update timers and fire up the event!
-					m_events[i].prev += (step * m_events[i].t);
-					m_events[i]	({	step: step, 
+					events[i].prev += (step * events[i].t);
+					events[i]	({	step: step, 
 									now: now, 
-									fps: m_events[i].fps
+									fps: events[i].fps
 								});				
 
 					// if this event is to be executed at limited step, handle it here
-					if (m_events[i].n != 'undefined' && m_events[i].n)
+					if (events[i].n != 'undefined' && events[i].n)
 					{
-						m_events[i].n -= step;
-						if (m_events[i].n <= 0) this.removeEvent(m_events[i]);
+						events[i].n -= step;
+						if (events[i].n <= 0) this.removeEvent(events[i]);
 					}
 				}	
 			}		
 				
 			// any event that is requested to be added or removed will be performed here.
-			while( m_eventQueue.length)
+			while( eventQueue.length)
 			{
 				// if to be added...
-				if (m_eventQueue[0].add)
+				if (eventQueue[0].add)
 				{
-					m_events.push(m_eventQueue[0].func);
-					m_events[m_events.length - 1].t = m_eventQueue[0].t;
-					m_events[m_events.length - 1].first = true;		
-					m_events[m_events.length - 1].n = m_eventQueue[0].n;			
-					m_events[m_events.length - 1].paused = false;					
-					m_events[m_events.length - 1].step = 0;					
-					m_events[m_events.length - 1].start1sec = now;					
-					m_events[m_events.length - 1].fps = 0;					
+					events.push(eventQueue[0].func);
+					events[events.length - 1].t = eventQueue[0].t;
+					events[events.length - 1].first = true;		
+					events[events.length - 1].n = eventQueue[0].n;			
+					events[events.length - 1].paused = false;					
+					events[events.length - 1].step = 0;					
+					events[events.length - 1].start1sec = now;					
+					events[events.length - 1].fps = 0;					
 				}
 				// if to be removed...
 				else
 				{				
-					for (var i = 0; i < m_events.length; i++)
+					for (var i = 0; i < events.length; i++)
 					{
-						if( m_eventQueue[0].func == m_events[i]) 
+						if( eventQueue[0].func == events[i]) 
 						{
-							m_events.splice(i,1);
+							events.splice(i,1);
 							break;
 						}
 					}
 				}
-				m_eventQueue.shift();				
+				eventQueue.shift();				
 			}
 			
 		}.bind(this), 1);
 	}
 	
 	// stop the scene  
-	this.stop = function(){ clearInterval(m_intID); }				
+	this.stop = function(){ clearInterval(intID); }				
 }
 
 

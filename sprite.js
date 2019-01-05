@@ -1,11 +1,14 @@
 /*-----------------------------------------------------------------------------------
 action items:
--	is (elem instanceof scene) really the correct way to ensure elem is a scene object?
 -	test if calling draw() too soon will cause error if image and/or image.canvas is 
 	check for validity
 
+completed	
+-	capitalize first character so it is now 'Scene'. reason is we want to standardize classes to be
+	starting with capital letter
 
-completed:
+
+completed [20181231]
 -	use scene's draw() functions now used to draw images 
 
 -----------------------------------------------------------------------------------*/
@@ -13,7 +16,7 @@ completed:
 /*-----------------------------------------------------------------------------------
 sprite class
 -----------------------------------------------------------------------------------*/
-function sprite(imagefile)
+function Sprite(imagefile)
 {		
 	// check if image file is passed
 	if (typeof imagefile === 'undefined' ){ throw new Error("No image file is passed to sprite."); }
@@ -64,7 +67,7 @@ function sprite(imagefile)
 		if (!image.canvas) return;
 		
 		// make sure we are drawing to an actual scene object
-		if (!(elem instanceof scene) ){ throw new Error("scene object passed is not valid."); }
+		if (!(elem instanceof Scene) ){ throw new Error("scene object passed is not valid."); }
 
 		// round off the x and y coordinate because we noticed some wierd shifting if a coordinate contains decimal value
 		x = Math.round(x);
@@ -84,7 +87,7 @@ function sprite(imagefile)
 		if (!image.canvas) return;   
 		
 		// make sure we are drawing to an actual scene object
-		if (!(elem instanceof scene) ){ throw new Error("scene object passed is not valid."); }
+		if (!(elem instanceof Scene) ){ throw new Error("scene object passed is not valid."); }
 
 		// round off the x and y coordinate because we noticed some wierd shifting if a coordinate contains decimal value
 		x = Math.round(x);

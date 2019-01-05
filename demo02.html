@@ -26,7 +26,7 @@ this demo is to test the following class:
 		function init()
 		{		
 			// create scene object
-			app = new scene("sim_canvas");	
+			app = new Scene("sim_canvas");	
 			app.setSize(1024, 768);
 			app.setBackgroundColor("#000000");
 			app.setPos(5, 5);			
@@ -39,9 +39,9 @@ this demo is to test the following class:
 			// run the app
 			app.start();		
 			
-			sprite01 = new sprite("../png/frame-sprite-animation.png");
+			sprite01 = new Sprite("../png/frame-sprite-animation.png");
 			
-			sprites01 = new sprites("../png/frame-sprite-animation.png", 80, 80);			
+			sprites01 = new Sprites("../png/frame-sprite-animation.png", 80, 80);			
 			
 		}
 

@@ -27,7 +27,7 @@ this demo is to test the following class:
 		function init()
 		{		
 			// create scene object
-			app = new scene("sim_canvas");	
+			app = new Scene("sim_canvas");	
 			app.setSize(1024, 768);
 			app.setBackgroundColor("#000000");
 			app.setPos(5, 5);			
@@ -93,6 +93,7 @@ this demo is to test the following class:
 			slider01.addEventListener("mouseleave", onmouseleave);
 			slider01.addEventListener("mouseover", onmouseover);						
 			slider01.addEventListener("mousedrag", onmousedrag);
+			slider01.addEventListener("change", onchangeslider);
 			
 			var slider02 = new slider(frame01, "slider02", true, 10, 150, 80, 320, 120, 0, 255, false, false);
 			slider02.addEventListener("draw", drawsliderbody);			
@@ -104,6 +105,7 @@ this demo is to test the following class:
 			slider02.addEventListener("mouseleave", onmouseleave);
 			slider02.addEventListener("mouseover", onmouseover);						
 			slider02.addEventListener("mousedrag", onmousedrag);
+			slider02.addEventListener("change", onchangeslider);
 		}
 		
 		/* ---------------------------------------------------------------------------------------------
@@ -142,8 +144,8 @@ this demo is to test the following class:
 		function drawStats(info)
 		{
 			app.save();
-			app.shadowColor("black");
-			app.shadowBlur(10);
+			app.shadowColor = "black";
+			app.shadowBlur = 10;
 			app.drawRect(info.x, info.y, info.w, info.h, "", "rgba(128, 128,128, 0.5)");
 			app.restore();
 			
@@ -158,8 +160,8 @@ this demo is to test the following class:
 		function drawroundcornerFrame(info)
 		{
 			app.save();
-			app.shadowColor("black");
-			app.shadowBlur(10);
+			app.shadowColor = "black";
+			app.shadowBlur = 10;
 			app.drawRoundedRectangle(info.x, info.y, info.w, info.h, 0, "", "rgba(128, 128,128, 0.5)");
 			app.restore();
 			
@@ -182,9 +184,15 @@ this demo is to test the following class:
 		{
 			var b = 4;
 			app.drawRoundedRectangle(info.x + b, info.y + b, info.w - b*2, info.h - b*2, 0, "", "rgba(64, 64, 64, .75)");
-			
-			//app.drawText(info.elem.get(), info.x + 2, info.y + 2, "16px courier", "rgb(255,255,255)");
-		}		
+			app.drawText(info.elem.get(), info.x + 5, info.y + 5, "16px courier", "rgb(255,255,255)");
+		}	
+
+		/* ---------------------------------------------------------------------------------------------
+		handle slider's value change
+		--------------------------------------------------------------------------------------------- */
+		function onchangeslider(info)
+		{
+		}
 				
 		
 	</script>

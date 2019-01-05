@@ -1,13 +1,12 @@
 /*-----------------------------------------------------------------------------------
-action items:
-- 	set scene as one of arguments to constructor and use it to draw
+
+completed	
+-	capitalize first character so it is now 'Scene'. reason is we want to 
+	standardize classes to be starting with capital letter
+
 -----------------------------------------------------------------------------------*/
 
-/*
-action items:
--	use scene's draw() functions to draw images as scene.useCanvas() will be removed
-	and there won't be access to scene's canvas object anymore. make sure to test it
-*/
+
 	
 /*////////////////////////////////////////////////////////////////////////////////////////////////
  sprites (sprite sheet) class 
@@ -24,33 +23,33 @@ width, height
 - frame size
 
 ////////////////////////////////////////////////////////////////////////////////////////////////*/
-function sprites(fileNamePath, width, height)
+function Sprites(fileNamePath, width, height)
 {
 	// load the sprite sheet into sprite object
-	var m_sprite = new sprite(fileNamePath);		
+	var sprite = new Sprite(fileNamePath);		
 		
 	// allow sprites class to handle onload event for this sprite object
-	m_sprite.parent = this;
-	m_sprite.onload = function(){ if (this.parent.onload) this.parent.onload(); }		
+	sprite.parent = this;
+	sprite.onload = function(){ if (this.parent.onload) this.parent.onload(); }		
 	
 	this.drawFrame = function(elem, x, y, index, useCanvas)
 	{		
 		// calculate how many frames can fit within the image's width
-		var framesPerRow = Math.floor(m_sprite.width() / width); 
+		var framesPerRow = Math.floor(sprite.width() / width); 
 
 		// calculate the top-left coordinate in the image where this frame to be drawn is located
 		var sx = (index % framesPerRow) * width;
 		var sy = Math.floor(index/framesPerRow) * height;
 		
 		// draw 
-		m_sprite.drawRegionToTarget(elem, sx, sy, width, height, x, y, width, height, useCanvas); 
+		sprite.drawRegionToTarget(elem, sx, sy, width, height, x, y, width, height, useCanvas); 
 	}		
 	
 	// draw the whole image
 	this.draw = function(elem, x, y, useCanvas)
 	{				
 		// draw with option to draw canvas or direct image
-		m_sprite.draw(elem, x, y, useCanvas);
+		sprite.draw(elem, x, y, useCanvas);
 	}		
 		
 }
