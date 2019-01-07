@@ -1,0 +1,116 @@
+<!DOCTYPE HTML>
+<!--
+
+this demo is to test the following class:
+- scene
+- sprite
+- sprites
+- tile
+
+
+-->
+<html lang="en-US">
+<head>
+    <meta charset="UTF-8">
+    <title>JS test</title>
+	<script type="text/javascript">
+
+		function T()
+		{
+			console.log("T constructor happens...");
+
+			T.Y = function()
+			{
+				console.log("T.Y constructor happens...");
+			};
+		
+		};
+
+		var t = new T();
+		var y = new T.Y();
+
+
+		// base class
+		function control(x, y)
+		{
+			this.x = x;
+			this.y = y;
+			
+			var _width;
+			Object.defineProperty(this, "width",
+			{
+				get: function()
+				{
+					console.log("width.get() executed...");
+					return _width;
+				},
+				
+				set: function(e)
+				{
+					_width = e;
+					this.onSize();
+				}				
+			});
+		}
+
+		// base class prototypes
+		control.prototype.onSize = function()
+		{		
+			console.log("control's size changed: " + this.width);
+		}
+		
+		control.prototype.draw = function()
+		{
+			console.log("control.draw() executed...width:" + this.width);
+		};
+		
+		// sub class
+		function button(label)
+		{	
+			// inherit base class 'control'
+			control.call(this);  
+						
+			this.label = label;					
+		}
+		
+		// inherit base class' prototypes
+		button.prototype = Object.create(control.prototype);
+		
+		// make sure sub class calls its own constructor when instantiating and not the one from base class
+		button.prototype.constructor = button;
+		
+		// override base class' prototype
+		button.prototype.draw = function()
+		{
+			console.log("button.draw() executed...width:" + this.width);
+		}
+		
+
+		
+		function init()
+		{		
+			var c = new control(5, 6, true);
+			var b = new button(10, 11, false);
+			
+			c.width = 69;
+			b.width = 47;
+			
+			c.draw();
+			b.draw();
+
+		console.log(t.row + ", " + t.col);			
+		}
+		
+	
+		
+	
+				
+		
+	</script>
+</head>
+<body onload = "init()" style="margin: 0">
+    <canvas style="margin-left: left; margin-right: right; display: block; margin: 0;" id = "sim_canvas"  >
+        Your browser does not support the HTML5 canvas tag.
+    </canvas>
+ </body>
+</html>

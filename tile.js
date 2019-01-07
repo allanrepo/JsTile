@@ -87,9 +87,15 @@ tile image/resource decription
 /*---------------------------------------------------------------------------------------------------------------------------------
 map class implementation
 ---------------------------------------------------------------------------------------------------------------------------------*/	
-function Map(scene, map, cx, cy, depth, base, tilewidth)
+//function Map(scene, map, cx, cy, depth, base, tilewidth)
+function Map()
 {
 	"use strict";
+
+
+
+
+	return;
 
 	/*------------------------------------------------------------------------
 	 private members
@@ -145,6 +151,8 @@ function Map(scene, map, cx, cy, depth, base, tilewidth)
 		},
 		get: function(){ return cy; }
 	});	
+
+
 	
 }
 

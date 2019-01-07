@@ -1,0 +1,167 @@
+<!DOCTYPE HTML>
+<html lang="en-US">
+<head>
+    <meta charset="UTF-8">
+    <title>Testing Map Class Demo</title>
+    <script type="text/javascript" src = "./scene.js"></script>
+    <script type="text/javascript" src = "./tile.js"></script>
+    <script type="text/javascript" src = "./ui.js"></script>
+    <script type="text/javascript" src = "./sprite.js"></script>
+    <script type="text/javascript" src = "./engine.js"></script>
+	<script type="text/javascript">
+		var scene;
+        var ui, perf, ctrlframe, mapctrlframe;
+        var tmap = [];
+        var loadmapbutton;
+        var mapSize = 0;
+
+		/* ---------------------------------------------------------------------------------------------
+		called on <body> to initiate js scenelication
+		--------------------------------------------------------------------------------------------- */
+		function init()
+		{		
+			// create scene object
+			scene = new Scene("sim_canvas");	
+			scene.setSize(1024, 768);
+			scene.setBackgroundColor("#ffffff");
+			scene.setPos(5, 5);			
+			scene.autoFitDocument(true);
+
+            // create ui
+            ui = new engine.ui(scene, "root");	
+            ctrlframe = new engine.frame(ui, "ctrl", 5, 5, 320, 480, true, true);   
+            
+            mapctrlframe = new engine.frame(ui, "mapctrlframe", 5, 5, 300, 300, true, true);   
+            loadmapbutton = new engine.button(mapctrlframe, "loadmapbutton", 10, 10, 120, 40, "Load Map" );
+            loadmapbutton.addEventListener("mouseup", onloadmap);
+            loadmapbutton.addEventListener("draw", drawloadmap);
+            
+            new engine.switch(ctrlframe, "switch", 10, 10, 20, "Blue");         
+            new engine.switch(ctrlframe, "switch", 10, 50, 24, "Red");         
+            new engine.switch(ctrlframe, "switch", 10, 90, 16, "Green");        
+            new engine.button(ctrlframe, "button", 10, 200, 200, 60, "This Text Is Clipped Because It's Too Long" );
+            new engine.slider(ctrlframe, "slider", false, 10, 280, 200, 24, 50, 100);
+            new engine.slider(ctrlframe, "slider", true, 10, 320, 100, 32, 5, 10);
+
+            perf = new engine.frame(ui, "ctrl", 50, 50, 480, 320, true, true);   
+            perf.addEventListener("draw", drawStuff);
+
+            // add the application loop event running at max interval
+            scene.addEvent(run, 1);
+
+            //processLargeArray(map);
+            //console.log("length: " + map.length);
+
+					
+			// run the scene
+            scene.start();	                       
+        }
+
+        function onloadmap(e)
+        {
+            console.log("click");
+            var tmap = [];
+            mapSize = 0;
+            
+            generate(tmap, 99, 10, 100, 100, mapSize);
+
+            //processLargeArray(map);
+
+        }
+
+        function drawloadmap(e)
+        {
+            scene.drawText(mapSize, e.x + 10, e.y + 60, 100, 24, 24, 'verdana', 'rgba(192, 192, 192, 1)', 'left', 'top');
+            scene.drawText(tmap.length, e.x + 10, e.y + 90, 100, 24, 24, 'verdana', 'rgba(192, 192, 192, 1)', 'left', 'top');
+        }
+
+
+        function generate(map, chunk, sleep, row, col, t)
+        {            
+            map = [];
+            var r = -1;
+            var c = col; // initiate to max so we fire up row creation on first attempt
+            function loadPerChunk()
+            {
+                var n = chunk;
+                while(n && (r < row || c < col) )
+                {
+                    // everytime we reach end of column, we make a new row
+                    if(c == col) 
+                    {
+                        map.push([]);
+                        r++;
+                        c = 0;
+                    }
+                    // push tile on current column/row
+                    t++;
+                    map[r].push(t);
+                    c++;
+                    n--;
+                }
+                console.log(r + ", " + c + " - " + map.length);
+                if(r < row || c < col)
+                {
+                    setTimeout(loadPerChunk, sleep);
+                }
+            }
+            loadPerChunk();
+        }
+
+        function processLargeArray(arr) 
+        {
+            // set this to whatever number of items you can process at once
+            var chunk = 1000;
+            var index = 0;
+            function doChunk() 
+            {
+                var cnt = chunk;
+                while (cnt-- && index < 1000000) 
+                {
+                    // process array[index] here
+                    arr.push("hello world");
+                    ++index;
+                }
+                if (index < 1000000) 
+                {
+                    // set Timeout for async iteration
+                    setTimeout(doChunk, 100);
+                }
+            }    
+            doChunk();    
+        }
+        
+        function drawStuff(e)
+        {
+            scene.shadowBlur = 0;
+            //scene.drawRect(e.x + 15, e.y + 15, 400, 64, 'rgba(255, 255, 255, 1)', 'rgba(255, 255, 255, 1)');
+            //scene.drawText("Hello World.", e.x + 15, e.y + 15, 400, 64, 32, 'verdana', 'rgba(128, 128, 255, 1)', 'center', 'center', true);
+            scene.drawText("Frame Rate", e.x + 5, e.y + 5, 0, 24, 24, 'impact', 'rgba(255, 255, 255, 1)');
+            scene.drawText("fps", e.x + 120, e.y + 5, 0, 24, 16, 'verdana', 'rgba(192, 192, 192, 1)', 'left', 'bottom');
+            scene.drawText(e.elem.fps.toFixed(1), e.x + 5, e.y + 36, 0, 48, 48, 'verdana', 'rgba(192, 192, 192, 1)', 'left', 'bottom');
+
+            scene.drawText("Screen Size", e.x + 5, e.y + 110, 0, 24, 24, 'impact', 'rgba(255, 255, 255, 1)');
+            scene.drawText("pixels", e.x + 125, e.y + 110, 0, 24, 16, 'verdana', 'rgba(192, 192, 192, 1)', 'left', 'bottom');
+            scene.drawText(scene.width + "x" + scene.height, e.x + 5, e.y + 124, 0, 48, 32, 'verdana', 'rgba(192, 192, 192, 1)', 'left', 'bottom');
+
+            //scene.drawText(map.length, e.x + 5, e.y + 160, 0, 48, 32, 'verdana', 'rgba(192, 192, 192, 1)', 'left', 'bottom');
+        }
+
+		/* ---------------------------------------------------------------------------------------------
+		application loop 
+		--------------------------------------------------------------------------------------------- */
+ 		function run(info)    
+		{         
+            perf.fps = info.fps;   
+			scene.clear();	
+            ui.draw();		                        
+		}		
+		
+	</script>
+</head>
+<body onload = "init()" style="margin: 0">
+    <canvas style="margin-left: left; margin-right: right; display: block; margin: 0;" id = "sim_canvas"  >
+        Your browser does not support the HTML5 canvas tag.
+    </canvas>
+ </body>
+</html>
