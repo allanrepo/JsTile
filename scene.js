@@ -4,6 +4,15 @@ action item:
 -	might want to change canvas property wrappers to use defineProperty()
 
 completed
+- 	add more canvas property wrappers
+- 	update drawText() such that it's x,y param means it's the top-left of the rectangle where
+	the text will be drawn.
+-	add function to get text width
+- 	updated drawText() as it now alignment feature, clipping, and bounding box. fancy!
+- 	add a function to clip drawings in rectangular area
+-	replace canvas width and height getter functions into properties
+
+completed[20190105]
 -	capitalize first character so it is now 'Scene'. reason is we want to standardize classes to be
 	starting with capital letter
 -	wrapped globalAlpha property of canvas and make it a property of scene
@@ -49,7 +58,7 @@ events
 // holds object to draw stuff
 // runs a scene loop with controllable frame rate
 /////////////////////////////////////////////////////////////////////////////////////////////////
-function Scene(thisCanvas)
+Scene = function(thisCanvas)
 {	
 	/*------------------------------------------------------------------------
 	initialize the canvas element
@@ -127,8 +136,10 @@ function Scene(thisCanvas)
 	this.getBoundingClientRect = function(){ return canvas.getBoundingClientRect(); }
 
 	// access canvas extents
-	this.width = function(){ return canvas.width; }
-	this.height = function(){ return canvas.height; }
+	//this.width = function(){ return canvas.width; }
+	//this.height = function(){ return canvas.height; }
+	Object.defineProperty(this, "width", { get: function(){ return canvas.width; } });
+	Object.defineProperty(this, "height", { get: function(){ return canvas.height; } });
 
 	// set or access canvas properties
 	Object.defineProperty(this, "shadowBlur", { get: function(){ return canvas.getContext("2d").shadowBlur; }, set: function(e){ canvas.getContext("2d").shadowBlur = e; }});
@@ -138,11 +149,20 @@ function Scene(thisCanvas)
 	Object.defineProperty(this, "shadowOffsetX", { get: function(){ return canvas.getContext("2d").shadowOffsetX; }, set: function(e){ canvas.getContext("2d").shadowOffsetX = e; }});
 	Object.defineProperty(this, "shadowOffsetY", { get: function(){ return canvas.getContext("2d").shadowOffsetY; }, set: function(e){ canvas.getContext("2d").shadowOffsetY = e; }});
 	Object.defineProperty(this, "globalAlpha", { get: function(){ return canvas.getContext("2d").globalAlpha; }, set: function(e){ canvas.getContext("2d").globalAlpha = e; }});
-
+	Object.defineProperty(this, "font", { get: function(){ return canvas.getContext("2d").font; }, set: function(e){ canvas.getContext("2d").font = e; }});
+	Object.defineProperty(this, "textBaseline", { get: function(){ return canvas.getContext("2d").textBaseline; }, set: function(e){ canvas.getContext("2d").textBaseline = e; }});
+	
 	// wrapped canvas functions to handle its drawing state
 	this.save = function(){ canvas.getContext("2d").save(); }	
 	this.restore = function(){ canvas.getContext("2d").restore(); }	
-	
+
+	// wrapped canvas functions for text
+	this.getTextWidth = function(text, font)
+	{ 
+		if (typeof font !== 'undefined' && font){ canvas.getContext("2d").font = font; }
+		return canvas.getContext("2d").measureText(text).width; 
+	}
+
 	/*------------------------------------------------------------------------
 	scene can automatically resize canvas to fill document area. this can be
 	enabled/disabled with this function
@@ -273,27 +293,85 @@ function Scene(thisCanvas)
 	functions that performs transformation of canvas element
 	------------------------------------------------------------------------*/		
 	this.translate = function(tx, ty){ canvas.getContext("2d").translate(tx, ty); }
+
+	this.clip = function(x, y, w, h)
+	{
+		canvas.getContext("2d").beginPath();
+		canvas.getContext("2d").rect(x, y, w, h);
+		canvas.getContext("2d").clip();
+	}
 		
 	/*------------------------------------------------------------------------
 	 functions to draw text primarily for debugging purposes
 	------------------------------------------------------------------------*/
 	
 	// privileged method: write text to canvas at given position
-	this.drawText = function(text, x, y, font, color, alpha, halign, valign) 
+	
+	this.draw1Text = function(text, x, y, font, color) 
 	{
 		var ctx = canvas.getContext("2d");
 		if (!ctx){ throw new Error("Failed to get 2D context from " +canvas+ "."); }
-		
+
 		if (typeof font !== 'undefined' && font){ ctx.font = font; }
 		if (typeof color !== 'undefined' && color){ ctx.fillStyle = color; }
 		
-		// default is top-left, no transparency
-		(typeof alpha !== 'undefined' && alpha)? ctx.globalAlpha = alpha: ctx.globalAlpha = 1.0; 
-		(typeof halign !== 'undefined' && halign)? ctx.textAlign = halign: ctx.textAlign = "left"; 
-		(typeof valign !== 'undefined' && valign)? ctx.textBaseline = valign: ctx.textBaseline = "top";  
+		// x,y is always the top-left of text
+		ctx.textAlign = "left";
+		ctx.textBaseline = "top";
 
 		ctx.fillText(text, x, y);		
 	}
+	
+
+	/*------------------------------------------------------------------------
+	function to draw text 
+	------------------------------------------------------------------------*/
+	this.drawText = function(	text, 
+								x, y, // top-left position to draw
+								w, h, // render/clipping rectangular area
+								s, font = 'verdana', color = 'black', // font size, style, and color
+								halign = 'left', // horizontal alignment - left, right, center
+								valign = 'top', // vertical alignment - top, bottom, center
+								clip = false // clip text if true
+								)
+	{
+		var ctx = canvas.getContext("2d");
+		if (!ctx){ throw new Error("Failed to get 2D context from " +canvas+ "."); }
+
+		// get width of font
+		var tw = this.getTextWidth(text, s + "px " + font);
+	
+		// check if we're clipping
+		if ((tw > w || s > h) && clip)
+		{
+			this.save();
+			this.clip(x, y, w, h);
+		}
+	
+		// calculate top-left x,y position based on given alignment 
+		//tx = x; // left
+		//tx = x - (tw - w)/2; // center
+		//tx = x - (tw - w); // right
+		x -= (halign === 'left'? 0 : (tw - w) / (halign === 'right'? 1 : 2));
+		y -= (valign === 'top'? 0 : (s - h) / (valign === 'bottom'? 1 : 2));
+	
+		// ensure there's no transparency or shadow
+		ctx.globalAlpha = 1;
+		ctx.shadowBlur = 0;
+
+		// canvas will always align to top-left x,y as we managed the alignment ourselves
+		ctx.textAlign = "left";
+		ctx.textBaseline = "top";				
+		
+		// tell canvas font size, type, and color
+		if (typeof font !== 'undefined' && font){ ctx.font = s + "px " + font; }
+		if (typeof color !== 'undefined' && color){ ctx.fillStyle = color; }		
+
+		ctx.fillText(text, x, y);
+	
+		// if we clipped, let's restore
+		if ((tw > w || s > h) && clip) this.restore();
+	}	
 	
 
 	/*------------------------------------------------------------------------------------------------------------------------------------------

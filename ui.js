@@ -9,8 +9,13 @@ action item:
 	is our implementation acceptable and within the design philosophy? we have separate event handler
 	for drawing body and thumb for sliders but both components share the same event handlers for 
 	mouse events. is this acceptable?
+-	convert hide() into property
 
 completed
+-	added min, max, curr as parameters to pass on draw event handlers
+-	scene.width and .height are now properties. replaced .width() and .height() getters 
+
+completed[20190105]
 -	remove setParent() to all classes
 
 completed[20181231]
@@ -85,8 +90,10 @@ function root(element, name)
 	element is supposed to be a scene but this object does not expect it to be all it
 	needs is the width/height of the object it will fit into
 	--------------------------------------------------------------------------------------*/
-	var w = element?( (typeof element.width === 'function') ? element.width() : 0): 0;
-	var h = element?( (typeof element.height === 'function') ? element.height() : 0): 0;
+	//var w = element?( (typeof element.width === 'function') ? element.width() : 0): 0;
+	//var h = element?( (typeof element.height === 'function') ? element.height() : 0): 0;
+	var w = element?( element.width ? element.width : 0): 0;
+	var h = element?( element.height ? element.height : 0): 0;
 	
 	this.width = function(){ return w;}	
 	this.height = function(){ return h;}	
@@ -612,12 +619,12 @@ function slider(parent, name, vertical, x, y, w, h, t, min, max, hide)
 	
 	body.addEventListener("draw", function(e)
 	{
-		for (var i = 0; i < drawEvents.length; i++) drawEvents[i]({elem: this, name: name, x: e.x, y: e.y, w: e.w, h: e.h});
+		for (var i = 0; i < drawEvents.length; i++) drawEvents[i]({elem: this, name: name, x: e.x, y: e.y, w: e.w, h: e.h, value: current, min: min, max: max});
 	}.bind(this));
 
 	thumb.addEventListener("draw", function(e)
 	{
-		for (var i = 0; i < drawThumbEvents.length; i++) drawThumbEvents[i]({elem: this, name: name, x: e.x, y: e.y, w: e.w, h: e.h});
+		for (var i = 0; i < drawThumbEvents.length; i++) drawThumbEvents[i]({elem: this, name: name, x: e.x, y: e.y, w: e.w, h: e.h, value: current, min: min, max: max});
 	}.bind(this));
 	
 	this.draw = function()
