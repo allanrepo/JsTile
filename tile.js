@@ -88,20 +88,95 @@ tile image/resource decription
 map class implementation
 ---------------------------------------------------------------------------------------------------------------------------------*/	
 //function Map(scene, map, cx, cy, depth, base, tilewidth)
-function Map()
+function Map(depth, tilewidth, base)
 {
 	"use strict";
+	/*------------------------------------------------------------------------
+	private members
+	------------------------------------------------------------------------*/
+	var map = [];
+
+	//accessors to map parameters
+	Object.defineProperty(this, "row", { get: function(){ return map.length }});
+	Object.defineProperty(this, "col", { get: function(){ return map.length? map[map.length - 1].length: 0; }});
+
+	/*------------------------------------------------------------------------
+	generate map asynchronously
+	------------------------------------------------------------------------*/
+	this.create = function(row, col, chunk, sleep)
+	{            
+		this.clear();
+
+		// this function recursively load tiles to map in chunks. it "sleeps" in between chunks
+		// to allow other tasks to run so it does not hijack the application
+		function loadPerChunk()
+		{
+			var n = chunk;
+			while(n)
+			{
+				// if we max rows, don't add anymore
+				if (map.length == row)
+				{                  
+					// if we're here, we are on the last row. if this row's full, let's bail
+					if (map[map.length - 1].length == col) break; 
+
+					// if we reach this point, this last row is not yet full. let's add more tile
+					map[map.length - 1].push("1");
+				}
+				// we still have room to add more rows before reaching max
+				else
+				{
+					// if map is still empty, let's add our first row
+					if (!map.length) map.push([]);
+
+					// otherwise, check if current row is full. if yes, add new row 
+					else if (map[map.length - 1].length == col) map.push([]);
+
+					// this row is not full yet OR is newly added empty row. add tile
+					map[map.length - 1].push("1");
+				}
+				// decremenet to monitor if we done with this chunk
+				n--;
+			}
+
+			// we keep loading in chunks if map is not filled with tiles yet
+			if( (map.length? (map[map.length - 1].length < col): true) || map.length < row) setTimeout(loadPerChunk, sleep);
+		};
+		loadPerChunk();
+	}
+
+	this.clear = function(){ map = []; }
 
 
+	var tiles = [];			
+	var maxtileheight = 0;
+	
+	/*------------------------------------------------------------------------
+	load image files into tile objects, as our tile image list
+	------------------------------------------------------------------------*/
+	this.addTile = function(imagefile, row, col)
+	{
+		var t = new tile(imagefile, row, col, depth, tilewidth, base);
+		tiles.push(t);
+		t.onload = function()
+		{
+			if (maxtileheight < this.tileheight(row - 1, col - 1)){ maxtileheight = this.tileheight(row - 1, col - 1); }
+		}
+	}		
 
+	/*------------------------------------------------------------------------
+	draw map
+	------------------------------------------------------------------------*/
+	this.draw = function(x, y)
+	{
+	
+	}
 
 	return;
 
 	/*------------------------------------------------------------------------
 	 private members
 	------------------------------------------------------------------------*/
-	var tiles = [];			
-	var maxtileheight = 0;
 
 	/*------------------------------------------------------------------------
 	// validate arguments

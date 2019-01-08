@@ -14,6 +14,7 @@
         var tmap = [];
         var loadmapbutton;
         var mapSize = 0;
+        var map;
 
 		/* ---------------------------------------------------------------------------------------------
 		called on <body> to initiate js scenelication
@@ -47,7 +48,11 @@
 
             perf = new engine.frame(ui, "ctrl", 50, 50, 480, 320, true, true);   
             perf.addEventListener("draw", drawStuff);
-            perf.hide(true);
+            //perf.hide(true);
+
+            map = new Map();
+			map.addTile("../png/tiles/tile_1x1_tw144_d72_b24.png", 1, 1);
+			map.addTile("../png/tiles/tile_1x1_grass.png", 1, 1);
 
             // add the application loop event running at max interval
             scene.addEvent(run, 1);
@@ -62,26 +67,23 @@
 
         function onloadmap(e)
         {            
-            var tm = [];
-            var a = {b: 1, map: []};
-            generate(tm, 37, 10, 49, 11, a, tm);
-            console.log("// " + tm.length);
-            console.log("-- " + a.map.length);
-            console.log("<> " + a.b);
+            //e.elem.map = [];
+            //generate(e.elem.map, 100000, 1, 3415, 2875);
+            map.create(4324, 1119, 4500, 1);
         }
 
         function drawloadmap(e)
         {
-            scene.drawText(mapSize, e.x + 10, e.y + 60, 100, 24, 24, 'verdana', 'rgba(192, 192, 192, 1)', 'left', 'top');
-            scene.drawText(e.elem.map.length, e.x + 10, e.y + 90, 100, 24, 24, 'verdana', 'rgba(192, 192, 192, 1)', 'left', 'top');
+            //scene.drawText(mapSize, e.x + 10, e.y + 60, 100, 24, 24, 'verdana', 'rgba(192, 192, 192, 1)', 'left', 'top');
+            //scene.drawText(e.elem.map.length + ", " + (e.elem.map.length? e.elem.map[e.elem.map.length - 1].length : 0), 
+            //               e.x + 10, e.y + 90, 100, 24, 24, 'verdana', 'rgba(192, 192, 192, 1)', 'left', 'top');
+            scene.drawText(map.row + ", " + map.col, e.x + 10, e.y + 90, 100, 24, 24, 'verdana', 'rgba(192, 192, 192, 1)', 'left', 'top');
         }
 
 
-        function generate(map, chunk, sleep, row, col, z, q)
+        function generate(map, chunk, sleep, row, col)
         {            
-            z.b = 5;
-            map = [];
-            function loadPerChunk(map)
+            function loadPerChunk()
             {
                 var n = chunk;
                 while(n)
@@ -124,7 +126,7 @@
 
                 if(map.length)
                 {
-                    if(map[map.length - 1].length < col || map.length < row)
+                    if( (map.length? (map[map.length - 1].length < col): true) || map.length < row)
                     {
                         setTimeout(loadPerChunk, sleep);
                     }
@@ -134,7 +136,7 @@
                     }
                 }
             };
-            loadPerChunk(map);
+            loadPerChunk();
         }
 
         function processLargeArray(arr) 
