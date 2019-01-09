@@ -15,6 +15,7 @@
         var loadmapbutton;
         var mapSize = 0;
         var map;
+        var p = { x: 50, y: 50, r: 87, c:99 };
 
 		/* ---------------------------------------------------------------------------------------------
 		called on <body> to initiate js scenelication
@@ -30,6 +31,8 @@
 
             // create ui
             ui = new engine.ui(scene, "root");	
+            ui.addEventListener("mousedrag", onmousedrag);
+            ui.addEventListener("draw", onrootdraw);
             ctrlframe = new engine.frame(ui, "ctrl", 5, 5, 320, 480, true, true);   
             ctrlframe.hide(true);
 
@@ -50,10 +53,10 @@
             perf.addEventListener("draw", drawStuff);
             //perf.hide(true);
 
-            map = new Map();
+            map = new Map(72, 144, 24);
 			map.addTile("../png/tiles/tile_1x1_tw144_d72_b24.png", 1, 1);
-			map.addTile("../png/tiles/tile_1x1_grass.png", 1, 1);
-
+            map.addTile("../png/tiles/tile_1x1_grass.png", 1, 1);
+          
             // add the application loop event running at max interval
             scene.addEvent(run, 1);
 
@@ -65,11 +68,25 @@
             scene.start();	                       
         }
 
+        function onrootdraw(e)
+        {
+            if (map.col == p.c && map.row == p.r) map.draw(scene, p.x, p.y);
+
+        }
+
+        function onmousedrag(e)
+        {
+            p.x += e.dx; 
+            p.y += e.dy;
+
+
+        }
+
         function onloadmap(e)
         {            
             //e.elem.map = [];
             //generate(e.elem.map, 100000, 1, 3415, 2875);
-            map.create(4324, 1119, 4500, 1);
+            map.create(p.r, p.c, 50, 10);
         }
 
         function drawloadmap(e)

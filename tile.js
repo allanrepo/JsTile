@@ -121,8 +121,8 @@ function Map(depth, tilewidth, base)
 					if (map[map.length - 1].length == col) break; 
 
 					// if we reach this point, this last row is not yet full. let's add more tile
-					map[map.length - 1].push("1");
-				}
+					map[map.length - 1].push(1);
+				}				
 				// we still have room to add more rows before reaching max
 				else
 				{
@@ -133,7 +133,7 @@ function Map(depth, tilewidth, base)
 					else if (map[map.length - 1].length == col) map.push([]);
 
 					// this row is not full yet OR is newly added empty row. add tile
-					map[map.length - 1].push("1");
+					map[map.length - 1].push( Math.floor( Math.random() * 3));
 				}
 				// decremenet to monitor if we done with this chunk
 				n--;
@@ -156,7 +156,7 @@ function Map(depth, tilewidth, base)
 	------------------------------------------------------------------------*/
 	this.addTile = function(imagefile, row, col)
 	{
-		var t = new tile(imagefile, row, col, depth, tilewidth, base);
+		var t = new Tile(imagefile, row, col, depth, tilewidth, base);
 		tiles.push(t);
 		t.onload = function()
 		{
@@ -167,39 +167,36 @@ function Map(depth, tilewidth, base)
 	/*------------------------------------------------------------------------
 	draw map
 	------------------------------------------------------------------------*/
-	this.draw = function(x, y)
+	this.draw = function(scene, x, y)
 	{
-	
+		for (var r = 0; r < map.length; r++) 
+		{
+			for (var c = 0; c < map[0].length; c++) 
+			{	
+				// get tile index and check if it's valid
+				if (map[r][c] >= tiles.length || map[r][c] < 0) continue;
+
+				// calculate the x, y position in the screen where the tile will be drawn. 
+				// the tile's top-left position will coincide with the x, y position
+
+				// shift to center tile image horizontally (-width/2)
+				// shift next adjacent(row) tile to the right by half the tile width (+x*width/2)
+				// shift tile to the left by half the width for every row (-y*width/2)
+				var _x = x - tilewidth/2 + c*tilewidth/2 - r*tilewidth/2				
+
+				// * calculate y as if all tiles have fixed depth. Tile class knows how to align regardless of tile height
+				// shift next adjacent(row tile) down by half the tile depth (+x*depth/2)
+				// shift tile down by half the depth for every row (+y*depth/2)
+				// shift tile down by base (+base)
+				var _y = y + r * depth/2 + c * depth/2;
+
+				// draw the tile
+				tiles[ map[r][c] ].draw(scene, 0, 0, _x, _y);
+			}
+		}
 	}
 
 	return;
-
-	/*------------------------------------------------------------------------
-	 private members
-	------------------------------------------------------------------------*/
-
-	/*------------------------------------------------------------------------
-	// validate arguments
-	------------------------------------------------------------------------*/
-	
-	// check if scene is valid
-	if (typeof scene === 'undefined'){ throw new Error("scene passed is undefined"); }
-	if (!(scene instanceof Scene) ){ throw new Error("scene object is not an instance of scene."); }
-
-	// make sure map is a 2D array
-	if (typeof map === 'undefined'){ throw new Error("map is undefined"); }
-	if (map.constructor !== Array){ throw new Error("map is not an array"); }
-	if (!map.length){ throw new Error("map does not contain rows"); }
-	if (map[0].constructor !== Array){ throw new Error("map is not a 2D array"); }
-	
-	/*------------------------------------------------------------------------
-	store map information
-	------------------------------------------------------------------------*/	
-
-	// calculate the total height and width of the map. this width and height 
-	// refers to the rectangular area that the map can fit into when it is drawn.
-	map.height = (map.length + map[0].length)/2 * depth;
-	map.width = (map.length + map[0].length)/2 * tilewidth;	
 		
 	// tile map is shaped as diamond with 4 corners - top, bottom, left right. 
 	// let nx, ny be the top corner of the map	
@@ -436,7 +433,6 @@ function Tile(imagefile, row, col, depth, tilewidth, base)
 			scene.drawImageRegionToTarget(image.canvas, sx, sy, sw, sh, x, y, sw, sh);
 			//scene.drawRect(x, y, sw, sh, "rgba(128,128,128,0.5)", 0);
 			//scene.drawText(sw + ", " + sh, x, y, "16px courier", "rgb(128,128,128, 0.5)");
-
 		}
 	}	
 	
