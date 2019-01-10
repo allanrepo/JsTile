@@ -12,10 +12,12 @@
 		var scene;
         var ui, perf, ctrlframe, mapctrlframe;
         var tmap = [];
-        var loadmapbutton;
+        var loadmapbutton, togglemapboundsbutton, maprowslider, mapcolslider;
         var mapSize = 0;
         var map;
-        var p = { x: 50, y: 50, r: 87, c:99 };
+        var p = { x: 50, y: 50, r: 25, c:25 };
+        var steps = [];
+        var adjustfps;
 
 		/* ---------------------------------------------------------------------------------------------
 		called on <body> to initiate js scenelication
@@ -37,25 +39,31 @@
             ctrlframe.hide(true);
 
             mapctrlframe = new engine.frame(ui, "mapctrlframe", 5, 5, 300, 300, true, true);   
-            loadmapbutton = new engine.button(mapctrlframe, "loadmapbutton", 10, 10, 120, 40, "Load Map" );
+            mapctrlframe.addEventListener("draw", drawmapctrlframe);
+            loadmapbutton = new engine.button(mapctrlframe, "loadmapbutton", 10, 10, 200, 40, "Load Map" );
             loadmapbutton.addEventListener("mouseup", onloadmap);
             loadmapbutton.addEventListener("draw", drawloadmap);
-            loadmapbutton.map = [];
+            togglemapboundsbutton = new engine.button(mapctrlframe, "togglemapboundsbutton", 10, 60, 200, 40, "Toggle Boundary" );
+            maprowslider = new engine.slider(mapctrlframe, "maprowslider", true, 230, 10, 80, 24, 10, 100);
+            mapcolslider = new engine.slider(mapctrlframe, "mapcolslider", true, 260, 10, 80, 24, 10, 100);
+
             
             new engine.switch(ctrlframe, "switch", 10, 10, 20, "Blue");         
             new engine.switch(ctrlframe, "switch", 10, 50, 24, "Red");         
             new engine.switch(ctrlframe, "switch", 10, 90, 16, "Green");        
             new engine.button(ctrlframe, "button", 10, 200, 200, 60, "This Text Is Clipped Because It's Too Long" );
             new engine.slider(ctrlframe, "slider", false, 10, 280, 200, 24, 50, 100);
-            new engine.slider(ctrlframe, "slider", true, 10, 320, 100, 32, 5, 10);
+            new engine.slider(ctrlframe, "slider", true, 10, 320, 50, 32, 10, 100);
 
             perf = new engine.frame(ui, "ctrl", 50, 50, 480, 320, true, true);   
-            perf.addEventListener("draw", drawStuff);
-            //perf.hide(true);
+            perf.addEventListener("draw", perfDraw);
+            adjustfps = engine.slider(perf, "slider", false, 200, 10, 200, 24, 1, 50);
+            adjustfps.addEventListener("change", onadjustfps);
 
             map = new Map(72, 144, 24);
 			map.addTile("../png/tiles/tile_1x1_tw144_d72_b24.png", 1, 1);
             map.addTile("../png/tiles/tile_1x1_grass.png", 1, 1);
+			map.addTile("../png/tiles/tile_1x1_tw144_d72_b24.png", 1, 1);
           
             // add the application loop event running at max interval
             scene.addEvent(run, 1);
@@ -68,9 +76,14 @@
             scene.start();	                       
         }
 
+        function onadjustfps(e)
+        {
+            scene.setInterval(run, e.val);
+        }
+
         function onrootdraw(e)
         {
-            if (map.col == p.c && map.row == p.r) map.draw(scene, p.x, p.y);
+            if (map.col == mapcolslider.get() && map.row == maprowslider.get()) map.draw(scene, p.x, p.y);
 
         }
 
@@ -84,9 +97,9 @@
 
         function onloadmap(e)
         {            
-            //e.elem.map = [];
-            //generate(e.elem.map, 100000, 1, 3415, 2875);
-            map.create(p.r, p.c, 50, 10);
+            p.r = 10;
+            p.c = 10;
+            map.create(maprowslider.get(), mapcolslider.get(), 50, 1);
         }
 
         function drawloadmap(e)
@@ -94,92 +107,22 @@
             //scene.drawText(mapSize, e.x + 10, e.y + 60, 100, 24, 24, 'verdana', 'rgba(192, 192, 192, 1)', 'left', 'top');
             //scene.drawText(e.elem.map.length + ", " + (e.elem.map.length? e.elem.map[e.elem.map.length - 1].length : 0), 
             //               e.x + 10, e.y + 90, 100, 24, 24, 'verdana', 'rgba(192, 192, 192, 1)', 'left', 'top');
-            scene.drawText(map.row + ", " + map.col, e.x + 10, e.y + 90, 100, 24, 24, 'verdana', 'rgba(192, 192, 192, 1)', 'left', 'top');
+            scene.drawText(map.row + ", " + map.col + " // " + maprowslider.get() + ", " + mapcolslider.get(), e.x + 10, e.y + 90, 100, 24, 24, 'verdana', 'rgba(192, 192, 192, 1)', 'left', 'top');
+
         }
 
-
-        function generate(map, chunk, sleep, row, col)
-        {            
-            function loadPerChunk()
-            {
-                var n = chunk;
-                while(n)
-                {
-                    // if we reach expected number of rows, don't add anymore
-                    if (map.length == row)
-                    {                  
-                        // if we're here, we are on the last row. if this row's full, let's bail
-                        if (map[map.length - 1].length == col)
-                        {
-                            // we done now
-                            console.log("bailing.. " + map.length);
-                            break; 
-                        }
-                        // if we reach this point, this last row is not yet full. let's add more 
-                        map[map.length - 1].push("1");
-                    }
-                    // we still have room to add more rows before reaching expected 
-                    else
-                    {
-                        // let's handle the first iteration where map does not have any rows yet. just add one
-                        if (!map.length)
-                        {
-                            map.push([]);
-                        }
-                        // if this row is full already, add new row
-                        else if (map[map.length - 1].length == col)
-                        {
-                            map.push([]);
-                        }
-                        // this row is not full yet OR we're on new empty row. add data
-                        map[map.length - 1].push("1");
-                    }
-
-                    // this variable is to determine if we already performed in chunk size
-                    n--;
-                }
-
-                //console.log(">> " + map.length + ", " + map[map.length - 1].length);
-
-                if(map.length)
-                {
-                    if( (map.length? (map[map.length - 1].length < col): true) || map.length < row)
-                    {
-                        setTimeout(loadPerChunk, sleep);
-                    }
-                    else
-                    {
-                        console.log(">> " + map.length + ", " + map[map.length - 1].length);
-                    }
-                }
-            };
-            loadPerChunk();
-        }
-
-        function processLargeArray(arr) 
+        function drawmapctrlframe(e)
         {
-            // set this to whatever number of items you can process at once
-            var chunk = 1000;
-            var index = 0;
-            function doChunk() 
+            if (map.row * map.col < maprowslider.get() * mapcolslider.get() )
             {
-                var cnt = chunk;
-                while (cnt-- && index < 1000000) 
-                {
-                    // process array[index] here
-                    arr.push("hello world");
-                    ++index;
-                }
-                if (index < 1000000) 
-                {
-                    // set Timeout for async iteration
-                    setTimeout(doChunk, 100);
-                }
-            }    
-            doChunk();    
+                scene.drawRoundedRectangle(e.x + 5, e.y + e.h - 32, e.w - 10, 32, 16, '', 'rgba(192, 255, 192, 0.5)');
+                //scene.drawText(map.row + ", " + map.col, e.x + 10, e.y + 90, 100, 24, 24, 'verdana', 'rgba(192, 192, 192, 1)', 'left', 'top');
+            }
+
         }
-        
-        function drawStuff(e)
+
+    
+        function perfDraw(e)
         {
             scene.shadowBlur = 0;
             //scene.drawRect(e.x + 15, e.y + 15, 400, 64, 'rgba(255, 255, 255, 1)', 'rgba(255, 255, 255, 1)');
@@ -188,9 +131,37 @@
             scene.drawText("fps", e.x + 120, e.y + 5, 0, 24, 16, 'verdana', 'rgba(192, 192, 192, 1)', 'left', 'bottom');
             scene.drawText(e.elem.fps.toFixed(1), e.x + 5, e.y + 36, 0, 48, 48, 'verdana', 'rgba(192, 192, 192, 1)', 'left', 'bottom');
 
-            scene.drawText("Screen Size", e.x + 5, e.y + 110, 0, 24, 24, 'impact', 'rgba(255, 255, 255, 1)');
-            scene.drawText("pixels", e.x + 125, e.y + 110, 0, 24, 16, 'verdana', 'rgba(192, 192, 192, 1)', 'left', 'bottom');
-            scene.drawText(scene.width + "x" + scene.height, e.x + 5, e.y + 124, 0, 48, 32, 'verdana', 'rgba(192, 192, 192, 1)', 'left', 'bottom');
+            //scene.drawText("Screen Size", e.x + 5, e.y + 110, 0, 24, 24, 'impact', 'rgba(255, 255, 255, 1)');
+            //scene.drawText("pixels", e.x + 125, e.y + 110, 0, 24, 16, 'verdana', 'rgba(192, 192, 192, 1)', 'left', 'bottom');
+            //scene.drawText(scene.width + "x" + scene.height, e.x + 5, e.y + 124, 0, 48, 32, 'verdana', 'rgba(192, 192, 192, 1)', 'left', 'bottom');
+
+            var txt = "";
+            var pts = [];
+            for (var i = 0; i < steps.length; i++)
+            {
+                // push x
+                pts.push(i);
+
+                // push y
+                pts.push(steps[i]);
+            }
+            // right top
+            pts.push(steps.length - 1);
+            pts.push(0);
+
+            // left top
+            pts.push(0);
+            pts.push(0);
+
+            // left first
+            pts.push(0);
+            pts.push(steps[0]);
+            
+            //scene.drawText(txt, e.x + 5, e.y + 110, 0, 10, 16, 'verdana', 'rgba(192, 192, 192, 1)', 'left', 'bottom');
+            //scene.drawText(e.elem.step, e.x + 5, e.y + 110, 0, 10, 16, 'verdana', 'rgba(192, 192, 192, 1)', 'left', 'bottom');
+
+           scene.drawPolygon( pts, e.x + 5, e.y + 110 , 'rgba(192, 192, 192, 1)', '');
+
 
             //scene.drawText(map.length, e.x + 5, e.y + 160, 0, 48, 32, 'verdana', 'rgba(192, 192, 192, 1)', 'left', 'bottom');
         }
@@ -200,9 +171,13 @@
 		--------------------------------------------------------------------------------------------- */
  		function run(info)    
 		{         
-            perf.fps = info.fps;   
+            perf.fps = info.fps;  
+            perf.step = info.step; 
 			scene.clear();	
-            ui.draw();		                        
+            ui.draw();		   
+            
+            steps.push(info.now - info.prev);
+            if (steps.length > 400) steps.shift();
 		}		
 		
 	</script>

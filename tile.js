@@ -81,6 +81,30 @@ tile image/resource decription
 	|---------------------------			1			
 
 
+
+map(x, y)
+
+											0
+										0		0
+									0				0
+								0		0		0		0
+							0				0				0
+						0		0		0		0		0		0
+					0				0				0				0
+				0		0		0		0		0		0		0		0
+			0				0				0				0				0
+		0		0		0		0		0		0		0		0		0		0
+	0				0				0				0				0				0
+		0		0		0		0		0		0		0		0		0		0			
+			0				0				0				0				0
+				0		0		0		0		0		0		0		0
+					0				0				0				0
+						0		0		0		0		0		0
+							0				0				0
+								0		0		0		0
+									0				0
+										0		0
+											0
 ---------------------------------------------------------------------------------------------------------------------------------*/	
 
 
@@ -112,7 +136,7 @@ function Map(depth, tilewidth, base)
 		function loadPerChunk()
 		{
 			var n = chunk;
-			while(n)
+			while(n--)
 			{
 				// if we max rows, don't add anymore
 				if (map.length == row)
@@ -135,8 +159,6 @@ function Map(depth, tilewidth, base)
 					// this row is not full yet OR is newly added empty row. add tile
 					map[map.length - 1].push( Math.floor( Math.random() * 3));
 				}
-				// decremenet to monitor if we done with this chunk
-				n--;
 			}
 
 			// we keep loading in chunks if map is not filled with tiles yet
@@ -176,8 +198,9 @@ function Map(depth, tilewidth, base)
 				// get tile index and check if it's valid
 				if (map[r][c] >= tiles.length || map[r][c] < 0) continue;
 
-				// calculate the x, y position in the screen where the tile will be drawn. 
-				// the tile's top-left position will coincide with the x, y position
+				// the first tile [0,0] we're drawing is at the top corner of the map. 
+				// the x, y will be the top-left position of the first tile.
+
 
 				// shift to center tile image horizontally (-width/2)
 				// shift next adjacent(row) tile to the right by half the tile width (+x*width/2)

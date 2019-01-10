@@ -288,6 +288,20 @@ Scene = function(thisCanvas)
 		}
 	}	
 
+	this.drawPolygon = function(pts, x, y, color, fill)
+	{
+		var ctx = canvas.getContext("2d");
+
+		ctx.beginPath();
+		ctx.moveTo(x + pts[0], y + pts[1]);
+		for (var i = 0; i < pts.length; i+=2)
+		{
+			ctx.lineTo(x + pts[i], y + pts[i+1]);
+		}
+		if(fill){ ctx.fillStyle = fill; ctx.fill(); }		
+		if(color){ ctx.strokeStyle = color; ctx.stroke(); }		
+	}
+
 	
 	/*------------------------------------------------------------------------
 	functions that performs transformation of canvas element
@@ -306,7 +320,7 @@ Scene = function(thisCanvas)
 	------------------------------------------------------------------------*/
 	
 	// privileged method: write text to canvas at given position
-	
+	/*
 	this.draw1Text = function(text, x, y, font, color) 
 	{
 		var ctx = canvas.getContext("2d");
@@ -321,7 +335,7 @@ Scene = function(thisCanvas)
 
 		ctx.fillText(text, x, y);		
 	}
-	
+	*/
 
 	/*------------------------------------------------------------------------
 	function to draw text 
@@ -384,6 +398,19 @@ Scene = function(thisCanvas)
 	
 	// accessors
 	this.getNumEvents = function(){ return events.length; }
+
+	// adjust the sleep time interval of the given event
+	this.setInterval = function(func, t)
+	{
+		for (var i = 0; i < events.length; i++)
+		{ 
+			if(func == events[i])
+			{ 
+				events[i].t = t; 
+				return; 
+			}
+		}
+	}
 	
 	// add an event handler to list of events to process in application loop
 	// n - if set, this event will only be executed n steps
@@ -450,17 +477,20 @@ Scene = function(thisCanvas)
 					events[i].frame++;
 					if(now - events[i].start1sec >= 1000)
 					{
-						events[i].fps = events[i].frame / (now - events[i].start1sec) * 1000;
+						events[i].fps = events[i].frame / (now - events[i].start1sec) * 1000; // multipier 1000 is to convert ms to sec
 						events[i].start1sec = now;
 						events[i].frame = 0;
 					}
 										
 					// update timers and fire up the event!
-					events[i].prev += (step * events[i].t);
 					events[i]	({	step: step, 
 									now: now, 
-									fps: events[i].fps
+									fps: events[i].fps,
+									prev: events[i].prev
 								});				
+
+					// update prev with the time slice that occured in this frame
+					events[i].prev += (step * events[i].t);
 
 					// if this event is to be executed at limited step, handle it here
 					if (events[i].n != 'undefined' && events[i].n)
@@ -472,7 +502,7 @@ Scene = function(thisCanvas)
 			}		
 				
 			// any event that is requested to be added or removed will be performed here.
-			while( eventQueue.length)
+			while(eventQueue.length)
 			{
 				// if to be added...
 				if (eventQueue[0].add)

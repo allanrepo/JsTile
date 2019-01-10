@@ -684,7 +684,7 @@ function slider(parent, name, vertical, x, y, w, h, t, min, max, hide)
 		// update thumb position based on current value
 		updateThumbPos();		
 		
-		for (var i = 0; i < changeEvents.length; i++){ changeEvents[i]({elem: this, val: curr, min: min, max: max}); }		
+		for (var i = 0; i < changeEvents.length; i++){ changeEvents[i]({elem: this, val: current, min: min, max: max}); }		
 	}	
 	
 	/* --------------------------------------------------------------------------------------
