@@ -165,7 +165,59 @@ engine.onDrawButton = function(e)
                             e.w - b*2, h, h, engine.font, 'rgb(255, 255, 255)', 'center', 'center', true);
 }
 
+engine.perf = function(x, y, w, h, e)
+{
+    // set min size of the frame
+    w = w < 400? 400: w;
+    h = h < 200? 200: h;
 
+    // create frame
+    var p = new engine.frame(ui, "perfframe", x, y, w, h, true, true); 
+
+    // draw stuff on frame
+    var fs = 24;
+    var b = 10;
+    var tw = 150;
+    var uw = 0;
+    var fsu = fs * 0.6;
+    var fsn = fs * 2;
+    var ub = b / 4;
+    var ds = 0;
+    
+    p.addEventListener("draw", function(e)
+    {        
+        engine.scene.shadowBlur = 0;
+        engine.scene.globalAlpha = 1;
+
+        uw = engine.scene.getTextWidth("fps", fsu + 'px verdana');
+        engine.scene.drawText("Frame Rate", e.x + e.w - b - tw, e.y + b, tw - uw - ub, fs, fs, 'impact', 'rgba(255, 255, 255, 1)', 'right', 'bottom' );
+        engine.scene.drawText("fps",        e.x + e.w - b - uw, e.y + b, uw, fs, fsu, 'verdana', 'rgba(192, 192, 192, 1)', 'right', 'bottom' );
+        engine.scene.drawText(e.elem.fps.toFixed(1), e.x + e.w - b - tw, e.y + b + ub + fs, tw, fsn, fsn, 'verdana', 'rgba(192, 192, 192, 1)', 'right', 'bottom' );
+
+        uw = engine.scene.getTextWidth("ms", fsu + 'px verdana');
+        ds = fs + ub + fsn + b*2;
+        engine.scene.drawText("Interval Size", e.x + e.w - b - tw, e.y + ds + b, tw - uw - ub, fs, fs, 'impact', 'rgba(255, 255, 255, 1)', 'right', 'bottom' );
+        engine.scene.drawText("ms",       e.x + e.w - b - uw, e.y + ds + b, uw, fs, fsu, 'verdana', 'rgba(192, 192, 192, 1)', 'right', 'bottom' );
+        engine.scene.drawText(s.value,       e.x + e.w - b - tw, e.y + ds + b + ub + fs, tw, fsn, fsn, 'verdana', 'rgba(192, 192, 192, 1)', 'right', 'bottom' );
+
+    });
+
+    ds = fs + ub + fsn + b*2;
+    ds += ds;
+    var s = new engine.slider(p, "framerate", false, w - b - tw*.7, b + ds, tw*.7, 24, 1, 50);
+
+    // draw plot here...
+
+
+    // add data
+    this.queue = function(e)
+    {
+        
+    }
+    
+
+    return p;
+}
 
 
 

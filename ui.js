@@ -10,6 +10,7 @@ action item:
 	for drawing body and thumb for sliders but both components share the same event handlers for 
 	mouse events. is this acceptable?
 -	convert hide() into property
+- 	allow decremental range (min > max) in slider
 
 completed
 -	added min, max, curr as parameters to pass on draw event handlers
@@ -686,6 +687,25 @@ function slider(parent, name, vertical, x, y, w, h, t, min, max, hide)
 		
 		for (var i = 0; i < changeEvents.length; i++){ changeEvents[i]({elem: this, val: current, min: min, max: max}); }		
 	}	
+
+	Object.defineProperty(this, "value", 
+	{ 
+		get: function()
+		{ 
+			return current;
+		},
+		set: function(e)
+		{ 
+			current = e;
+			if (current > max) current = max;
+			if (current < min) current = min;
+			
+			// update thumb position based on current value
+			updateThumbPos();		
+			
+			for (var i = 0; i < changeEvents.length; i++){ changeEvents[i]({elem: this, val: current, min: min, max: max}); }	
+		}
+	});
 	
 	/* --------------------------------------------------------------------------------------
 	update range

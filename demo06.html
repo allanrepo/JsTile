@@ -10,7 +10,7 @@
     <script type="text/javascript" src = "./engine.js"></script>
 	<script type="text/javascript">
 		var scene;
-        var ui, perf, ctrlframe, mapctrlframe;
+        var ui, perf, ctrlframe, mapctrlframe, perf1;
         var tmap = [];
         var loadmapbutton, togglemapboundsbutton, maprowslider, mapcolslider;
         var mapSize = 0;
@@ -38,6 +38,8 @@
             ctrlframe = new engine.frame(ui, "ctrl", 5, 5, 320, 480, true, true);   
             ctrlframe.hide(true);
 
+            perf1 = new engine.perf(10, 10, 600, 240);
+
             mapctrlframe = new engine.frame(ui, "mapctrlframe", 5, 5, 300, 300, true, true);   
             mapctrlframe.addEventListener("draw", drawmapctrlframe);
             loadmapbutton = new engine.button(mapctrlframe, "loadmapbutton", 10, 10, 200, 40, "Load Map" );
@@ -46,7 +48,6 @@
             togglemapboundsbutton = new engine.button(mapctrlframe, "togglemapboundsbutton", 10, 60, 200, 40, "Toggle Boundary" );
             maprowslider = new engine.slider(mapctrlframe, "maprowslider", true, 230, 10, 80, 24, 10, 100);
             mapcolslider = new engine.slider(mapctrlframe, "mapcolslider", true, 260, 10, 80, 24, 10, 100);
-
             
             new engine.switch(ctrlframe, "switch", 10, 10, 20, "Blue");         
             new engine.switch(ctrlframe, "switch", 10, 50, 24, "Red");         
@@ -171,6 +172,8 @@
 		--------------------------------------------------------------------------------------------- */
  		function run(info)    
 		{         
+            perf1.fps = info.fps;
+            perf1.step = info.step;
             perf.fps = info.fps;  
             perf.step = info.step; 
 			scene.clear();	

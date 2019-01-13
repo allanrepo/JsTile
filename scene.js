@@ -349,6 +349,8 @@ Scene = function(thisCanvas)
 								clip = false // clip text if true
 								)
 	{
+		//this.drawRect(x, y, w, h, 'rgba(255,255,255,0.7)', 'rgba(255,255,255,0.2)');
+
 		var ctx = canvas.getContext("2d");
 		if (!ctx){ throw new Error("Failed to get 2D context from " +canvas+ "."); }
 
@@ -404,11 +406,9 @@ Scene = function(thisCanvas)
 	{
 		for (var i = 0; i < events.length; i++)
 		{ 
-			if(func == events[i])
-			{ 
-				events[i].t = t; 
-				return; 
-			}
+			if(func != events[i]) continue;
+			events[i].t = t; 
+			return; 
 		}
 	}
 	
